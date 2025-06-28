@@ -4,7 +4,7 @@
   <name>Search by Tags</name>
   <description>Search files by tags</description>
   <version>1.0.0</version>
-  <namespace>TagSearch</namespace>
+  <namespace>SearchByTags</namespace>
   <author>Mauricio Nunes</author>
   <website>https://github.com/mbnunes/sarchbytags</website>
   <licence>BSD</licence>
