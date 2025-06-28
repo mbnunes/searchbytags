@@ -28,10 +28,10 @@ class TagSearchProvider implements ISearchProvider {
 
         // Detectar modo: AND ou OR
         $isAndMode = false;
-        if (stripos($query, 'tag:') === 0) {
+        if (stripos($query, 'etq:') === 0) {
             $isAndMode = true;
             $query = trim(substr($query, 4));
-        } elseif (stripos($query, 'tags:') === 0) {
+        } elseif (stripos($query, 'etqs:') === 0) {
             $query = trim(substr($query, 5));
         } else {
             // Não é uma busca por etiqueta
