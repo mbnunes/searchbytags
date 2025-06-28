@@ -3,120 +3,82 @@
 namespace OCA\TagSearch\Search;
 
 use OCP\Search\ISearchProvider;
-use OCP\Search\ISearchResult;
 use OCP\Search\SearchResult;
 use OCP\Search\SearchResultEntry;
-use OCP\Files\IRootFolder;
 use OCP\ITagManager;
-use OCP\IUser;
+use OCP\IUserSession;
 
 class TagSearchProvider implements ISearchProvider {
+    private ITagManager $tagManager;
+    private IUserSession $userSession;
+
+    public function __construct(ITagManager $tagManager, IUserSession $userSession) {
+        $this->tagManager = $tagManager;
+        $this->userSession = $userSession;
+    }
+
     public function getId(): string {
         return 'tagsearch';
     }
 
     public function getName(): string {
-        return 'Tag Search';
+        return 'Busca por Etiquetas';
     }
 
-    public function search(IUser $user, string $query, int $limit = null, int $offset = null): ISearchResult {
-        /** @var ITagManager $tagManager */
-        $tagManager = \OC::$server->getTagManager();
-        $tags = $tagManager->getTagsForUser($user->getUID());
-
-        $query = trim($query);
-
-        // Detectar modo: AND ou OR
-        $isAndMode = false;
-        if (stripos($query, 'etq:') === 0) {
-            $isAndMode = true;
-            $query = trim(substr($query, 4));
-        } elseif (stripos($query, 'etqs:') === 0) {
-            $query = trim(substr($query, 5));
-        } else {
-            // Não é uma busca por etiqueta
+    public function search(string $searchTerm, int $limit = 30, int $offset = 0): SearchResult {
+        if (stripos($searchTerm, 'etq:') !== 0) {
             return new SearchResult([]);
         }
 
-        $words = preg_split('/\s+/', $query);
-        $matchedTagIds = [];
-
-        // Mapeia cada palavra para IDs de tags (parciais, case-insensitive)
-        foreach ($words as $word) {
-            foreach ($tags as $tag) {
-                if (stripos($tag['name'], $word) !== false) {
-                    $matchedTagIds[$word] = $tag['id'];
-                    break;
-                }
-            }
-        }
-
-        // Se faltou casar alguma palavra com tag, aborta no modo AND
-        if ($isAndMode && count($matchedTagIds) < count($words)) {
+        $user = $this->userSession->getUser();
+        if (!$user) {
             return new SearchResult([]);
         }
 
-        $entries = [];
-        $rootFolder = \OC::$server->get(IRootFolder::class);
-        $userFolder = $rootFolder->getUserFolder($user->getUID());
+        // Extrai as tags da string
+        $tagString = trim(substr($searchTerm, strlen('etq:')));
+        $tagNames = preg_split('/\s+/', $tagString);
 
-        if ($isAndMode) {
-            // Modo AND: interseção
-            $tagIds = array_values($matchedTagIds);
-            $commonObjectIds = $tagManager->getObjectsForTags([$tagIds[0]], 'files');
+        if (empty($tagNames)) {
+            return new SearchResult([]);
+        }
 
-            for ($i = 1; $i < count($tagIds); $i++) {
-                $objectIds = $tagManager->getObjectsForTags([$tagIds[$i]], 'files');
-                $commonObjectIds = array_intersect($commonObjectIds, $objectIds);
-                if (empty($commonObjectIds)) {
-                    return new SearchResult([]);
-                }
+        // Busca por arquivos que tenham todas as tags (AND)
+        $taggedFiles = null;
+        foreach ($tagNames as $name) {
+            $tags = $this->tagManager->getTagsByName($user, $name);
+            if (empty($tags)) {
+                return new SearchResult([]); // se não achou a tag, retorna vazio
             }
 
-            foreach ($commonObjectIds as $fileId) {
-                try {
-                    $nodes = $userFolder->getById($fileId);
-                    if (!empty($nodes)) {
-                        $node = $nodes[0];
-                        $entries[] = new SearchResultEntry(
-                            $node->getName(),
-                            $node->getPath(),
-                            $node->getId(),
-                            $node->getMTime(),
-                            $node->getSize(),
-                            '', '', ''
-                        );
-                    }
-                } catch (\Throwable $e) {
-                    continue;
-                }
-            }
-        } else {
-            // Modo OR: união
-            $tagIds = array_values($matchedTagIds);
-            $objectIds = $tagManager->getObjectsForTags($tagIds, 'files');
+            $tagged = $this->tagManager->getObjectsForTags($tags, 'files');
+            $ids = array_map(fn($t) => $t['id'], $tagged);
 
-            foreach ($objectIds as $fileId) {
-                try {
-                    $nodes = $userFolder->getById($fileId);
-                    if (!empty($nodes)) {
-                        $node = $nodes[0];
-                        $entries[] = new SearchResultEntry(
-                            $node->getName(),
-                            $node->getPath(),
-                            $node->getId(),
-                            $node->getMTime(),
-                            $node->getSize(),
-                            '', '', ''
-                        );
-                    }
-                } catch (\Throwable $e) {
-                    continue;
-                }
+            if (is_null($taggedFiles)) {
+                $taggedFiles = $ids;
+            } else {
+                $taggedFiles = array_intersect($taggedFiles, $ids); // AND
+            }
+
+            if (empty($taggedFiles)) {
+                return new SearchResult([]); // nenhuma interseção
             }
         }
 
-        return new SearchResult($entries);
-    }
+        // Cria os resultados
+        $results = array_map(function ($fileId) use ($user) {
+            $node = \OC::$server->getRootFolder()->getUserFolder($user->getUID())->getById($fileId)[0] ?? null;
+            if (!$node) return null;
 
+            return new SearchResultEntry(
+                'tagsearch',
+                $node->getName(),
+                $node->getPath(),
+                'Arquivo com tags',
+                50
+            );
+        }, $taggedFiles);
+
+        return new SearchResult(array_filter($results));
+    }
 }
