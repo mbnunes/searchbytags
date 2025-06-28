@@ -1,10 +1,11 @@
 <?php
+
 return [
     'routes' => [
         [
-            'name' => 'SearchByTags#search',
+            'name' => 'search_by_tags#search',
             'url' => '/search',
-            'verb' => 'GET'
-        ]
+            'verb' => 'GET',
+        ],
     ]
 ];
