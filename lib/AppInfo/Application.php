@@ -10,7 +10,7 @@ use OCP\ITagManager;
 use OCP\AppFramework\Bootstrap\IBootContext;
 
 class Application extends App {
-    public const APP_ID = 'mytagsearch';
+    public const APP_ID = 'search_by_tags';
 
     public function __construct(array $urlParams = []) {
         parent::__construct(self::APP_ID, $urlParams);
