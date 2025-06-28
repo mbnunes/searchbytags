@@ -4,10 +4,10 @@
   "type": "project",
   "license": "BSD 2",
   "autoload": {
-    "psr-4": {
-      "OCA\\TagSearch\\": "lib/"
-    }
-  },
+	"psr-4": {
+		"OCA\\SearchByTags\\": "lib/"
+	}
+},
   "require": {
     "php": ">=8.1"
   }
