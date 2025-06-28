@@ -1,0 +1,14 @@
+{
+  "name": "mbnunes/searchbytags",
+  "description": "Search files in Nextcloud by tags",
+  "type": "project",
+  "license": "BSD 2",
+  "autoload": {
+    "psr-4": {
+      "OCA\\TagSearch\\": "lib/"
+    }
+  },
+  "require": {
+    "php": ">=8.1"
+  }
+}

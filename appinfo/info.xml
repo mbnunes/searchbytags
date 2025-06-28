@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<info>
+  <id>search_by_tags</id>
+  <name>Search by Tags</name>
+  <description>Search files by tags</description>
+  <version>1.0.0</version>
+  <namespace>TagSearch</namespace>
+  <author>Mauricio Nunes</author>
+  <website>https://github.com/mbnunes/sarchbytags</website>
+  <licence>BSD</licence>
+  <category>search</category>
+  <dependencies>
+    <nextcloud min-version="27" max-version="31" />
+  </dependencies>
+</info>
