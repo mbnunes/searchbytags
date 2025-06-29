@@ -1,23 +1,25 @@
 <?php
-
-namespace OCA\SearchByTags\AppInfo;
+namespace OCA\TagsSearch\AppInfo;
 
 use OCP\AppFramework\App;
+use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
-use OCP\AppFramework\Bootstrap\IBootContext;
-use OCP\Search\ISearchProvider;
-use OCA\SearchByTags\Search\SearchProvider;
+use OCA\SearchByTags\Search\TagsSearchProvider;
+
 class Application extends App implements IBootstrap {
+    public const APP_ID = 'search_by_tags';
+
     public function __construct(array $urlParams = []) {
-        parent::__construct('search_by_tags', $urlParams);
+        parent::__construct(self::APP_ID, $urlParams);
     }
 
-   public function register(IRegistrationContext $context): void {
-		$context->registerSearchProvider(SearchProvider::class);
-	}
+    public function register(IRegistrationContext $context): void {
+        // Registra o provedor de busca
+        $context->registerSearchProvider(TagsSearchProvider::class);
+    }
 
     public function boot(IBootContext $context): void {
-        // Aqui você pode executar lógica de inicialização
+        // Inicialização do app
     }
 }

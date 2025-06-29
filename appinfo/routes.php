@@ -1,11 +1,7 @@
 <?php
-
 return [
     'routes' => [
-        [
-            'name' => 'search_by_tags#search',
-            'url' => '/search',
-            'verb' => 'GET',
-        ],
+        ['name' => 'search#searchByTag', 'url' => '/api/search/{tagName}', 'verb' => 'GET'],
+        ['name' => 'page#index', 'url' => '/', 'verb' => 'GET']
     ]
 ];

@@ -1,15 +1,27 @@
 <?xml version="1.0"?>
-<info>
-  <id>search_by_tags</id>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <id>search_by_tags</id>
   <name>Search by Tags</name>
-  <description>Search files by tags</description>
-  <version>1.0.0</version>
-  <namespace>SearchByTags</namespace>
+    <summary>Busca arquivos por tags</summary>
+    <description>Adiciona funcionalidade de busca por tags no Nextcloud</description>
+    <version>1.0.0</version>
+    <licence>bsd</licence>
+    <namespace>SearchByTags</namespace>
   <author>Mauricio Nunes</author>
-  <website>https://github.com/mbnunes/sarchbytags</website>
-  <licence>BSD</licence>
-  <category>search</category>
-  <dependencies>
-    <nextcloud min-version="27" max-version="31" />
-  </dependencies>
+    <types>
+        <filesystem/>
+    </types>
+    <category>files</category>
+    <dependencies>
+        <nextcloud min-version="31" max-version="31"/>
+    </dependencies>
+    <navigations>
+        <navigation>
+            <name>Search byTags Search Tags</name>
+            <route>search_by_tags.page.index</route>
+            <icon>app.svg</icon>
+            <order>10</order>
+        </navigation>
+    </navigations>
 </info>
