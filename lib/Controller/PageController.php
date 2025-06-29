@@ -1,10 +1,8 @@
 <?php
-
 namespace OCA\SearchByTags\Controller;
 
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\TemplateResponse;
-use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\IRequest;
 
 class PageController extends Controller {
@@ -17,6 +15,7 @@ class PageController extends Controller {
      * @NoCSRFRequired
      */
     public function index(): TemplateResponse {
+        // Compatibilidade com a rota padrão
         return $this->viewResult();
     }
 
@@ -25,17 +24,6 @@ class PageController extends Controller {
      * @NoCSRFRequired
      */
     public function viewResult(): TemplateResponse {
-        $query = $this->request->getParam('query', '');
-
-        $response = new TemplateResponse('search_by_tags', 'result', [
-            'query' => $query
-        ]);
-
-        // Permite scripts inline com nonce gerado pelo Nextcloud
-        $csp = new ContentSecurityPolicy();
-        $csp->allowInlineScript(true);
-        $response->setContentSecurityPolicy($csp);
-
-        return $response;
+        return new TemplateResponse('search_by_tags', 'result', []);
     }
 }
