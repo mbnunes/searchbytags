@@ -1,8 +1,8 @@
 <?php
+script('search_by_tags', 'navigation-fix');
 script('search_by_tags', 'app');
 style('search_by_tags', 'style');
 ?>
-
 <div id="app-tagssearch">
     <div class="app-content-wrapper">
         <div class="search-container">

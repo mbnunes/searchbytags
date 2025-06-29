@@ -6,6 +6,9 @@ use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCA\SearchByTags\Search\TagsSearchProvider;
+use OCP\INavigationManager;
+use OCP\IL10N;
+use OCP\IURLGenerator;
 
 class Application extends App implements IBootstrap {
     public const APP_ID = 'search_by_tags';
@@ -20,6 +23,22 @@ class Application extends App implements IBootstrap {
     }
 
     public function boot(IBootContext $context): void {
-        // Não precisa registrar navegação aqui, o info.xml já faz isso
+        $container = $context->getAppContainer();
+        $server = $context->getServerContainer();
+        
+        // Força o registro da navegação
+        $server->getNavigationManager()->add(function () use ($container, $server) {
+            $urlGenerator = $server->getURLGenerator();
+            $l10n = $container->get(IL10N::class);
+            
+            return [
+                'id' => self::APP_ID,
+                'order' => 70,
+                'href' => $urlGenerator->getAbsoluteURL('/index.php/apps/' . self::APP_ID . '/'),
+                'icon' => $urlGenerator->imagePath(self::APP_ID, 'app.svg'),
+                'name' => $l10n->t('Search By Tags'),
+                'active' => false
+            ];
+        });
     }
 }
