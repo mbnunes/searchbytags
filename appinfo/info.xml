@@ -20,7 +20,7 @@
         <navigation>
             <id>search_by_tags</id>
             <name>Search By Tags</name>
-            <route>search_by_tags.page.index</route>
+            <route>search_by_tags.page#index</route>
             <icon>search_by_tags.svg</icon>
             <order>70</order>
         </navigation>
