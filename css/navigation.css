@@ -1,0 +1,12 @@
+/* Força o estilo do ícone no menu de navegação */
+#appmenu li[data-id="search_by_tags"] a,
+.app-menu-main li[data-app-id="search_by_tags"] a {
+    opacity: 1 !important;
+}
+
+#appmenu li[data-id="search_by_tags"] svg,
+#appmenu li[data-id="search_by_tags"] img,
+.app-menu-main li[data-app-id="search_by_tags"] svg,
+.app-menu-main li[data-app-id="search_by_tags"] img {
+    filter: var(--background-invert-if-dark);
+}

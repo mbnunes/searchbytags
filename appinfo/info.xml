@@ -18,7 +18,7 @@
     </dependencies>
     <navigations>
         <navigation>
-            <name>Search byTags Search Tags</name>
+            <name>Search by Tags</name>
             <route>search_by_tags.page.index</route>
             <icon>app.svg</icon>
             <order>10</order>

@@ -4,6 +4,7 @@ namespace OCA\SearchByTags\Controller;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IRequest;
+use OCP\Util;
 
 class PageController extends Controller {
     
@@ -16,6 +17,7 @@ class PageController extends Controller {
      * @NoCSRFRequired
      */
     public function index(): TemplateResponse {
+        Util::addStyle('search_by_tags', 'navigation');
         return new TemplateResponse('search_by_tags', 'main', []);
     }
 }
