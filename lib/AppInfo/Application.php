@@ -34,7 +34,7 @@ class Application extends App implements IBootstrap {
             return [
                 'id' => self::APP_ID,
                 'order' => 70,
-                'href' => $urlGenerator->linkToRoute('search_by_tags.page#index'),
+                'href' => $urlGenerator->linkToRoute('search_by_tags.page.index'),
                 'icon' => $urlGenerator->imagePath(self::APP_ID, 'app.svg'),
                 'name' => $l10n->t('Search By Tags'),
                 'active' => false
