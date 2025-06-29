@@ -12,9 +12,15 @@ class PageController extends Controller {
 
     /**
      * @NoAdminRequired
-     * @NoCSRFRequired
      */
     public function index(): TemplateResponse {
         return new TemplateResponse('search_by_tags', 'main', []);
+    }
+
+    /**
+     * @NoAdminRequired
+     */
+    public function viewResult(): TemplateResponse {
+        return new TemplateResponse('search_by_tags', 'result', []);
     }
 }
