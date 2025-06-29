@@ -19,8 +19,10 @@ class PageController extends Controller {
 
     /**
      * @NoAdminRequired
+     * @NoCSRFRequired
      */
     public function viewResult(): TemplateResponse {
-        return new TemplateResponse('search_by_tags', 'result', []);
+        $query = $this->request->getParam('query', '');
+        return new TemplateResponse('search_by_tags', 'result', ['query' => $query]);
     }
 }
