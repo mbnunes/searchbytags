@@ -2,13 +2,13 @@
 <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
     <id>search_by_tags</id>
-  <name>Search by Tags</name>
-    <summary>Busca arquivos por tags</summary>
-    <description>Adiciona funcionalidade de busca por tags no Nextcloud</description>
+    <name>Search By Tags</name>
+    <summary>Busca arquivos por tags com AND/OR</summary>
+    <description>Adiciona funcionalidade avançada de busca por tags no Nextcloud</description>
     <version>1.0.0</version>
     <licence>bsd</licence>
+    <author>Mauricio Nunes</author>
     <namespace>SearchByTags</namespace>
-  <author>Mauricio Nunes</author>
     <types>
         <filesystem/>
     </types>
@@ -18,10 +18,11 @@
     </dependencies>
     <navigations>
         <navigation>
-            <name>Search by Tags</name>
+            <id>search_by_tags</id>
+            <name>Search By Tags</name>
             <route>search_by_tags.page.index</route>
-            <icon>app.svg</icon>
-            <order>10</order>
+            <icon>search_by_tags.svg</icon>
+            <order>70</order>
         </navigation>
     </navigations>
 </info>
