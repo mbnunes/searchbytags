@@ -16,6 +16,14 @@ class PageController extends Controller {
      * @NoAdminRequired
      * @NoCSRFRequired
      */
+    public function index(): TemplateResponse {
+        return $this->viewResult();
+    }
+
+    /**
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     */
     public function viewResult(): TemplateResponse {
         $query = $this->request->getParam('query', '');
 
