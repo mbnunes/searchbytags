@@ -131,10 +131,8 @@ class SearchController extends Controller {
                             'mtime' => $node->getMTime(),
                             'mimetype' => $node->getMimeType(),
                             'type' => $node->getType() === \OCP\Files\FileInfo::TYPE_FOLDER ? 'folder' : 'file',
-                            'url' => $this->urlGenerator->linkToRoute('files.view.index', [
-                                'dir' => dirname($relativePath),
-                                'scrollto' => $node->getName()
-                            ])
+                            'url' => $this->urlGenerator->getAbsoluteURL('/index.php/apps/files?dir=' . urlencode(dirname($relativePath)) . '&scrollto=' . urlencode($node->getName())
+                            ),
                         ];
                     }
                 } catch (\Exception $e) {
