@@ -16,6 +16,6 @@ class PageController extends Controller {
      * @NoCSRFRequired
      */
     public function index(): TemplateResponse {
-        return new TemplateResponse('tagssearch', 'main', []);
+        return new TemplateResponse('search_by_tags', 'main', []);
     }
 }

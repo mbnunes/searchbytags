@@ -1,5 +1,5 @@
 <?php
-namespace OCA\TagsSearch\AppInfo;
+namespace OCA\SearchByTags\AppInfo;
 
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
