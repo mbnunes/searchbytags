@@ -16,6 +16,14 @@ class PageController extends Controller {
      * @NoAdminRequired
      * @NoCSRFRequired
      */
+    public function main(): TemplateResponse {
+        return $this->index();
+    }
+
+    /**
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     */
     public function index(): TemplateResponse {
         // Util::addStyle('search_by_tags', 'navigation');
         return new TemplateResponse('search_by_tags', 'main', []);
