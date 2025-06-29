@@ -61,6 +61,7 @@ class SearchController extends Controller {
     }
 
     /**
+     * @NoCSRFRequired
      * @NoAdminRequired
      */
     public function searchByTag(): JSONResponse {
