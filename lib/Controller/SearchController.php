@@ -44,7 +44,6 @@ class SearchController extends Controller {
         try {
             $tags = $this->tagManager->getAllTags(true);
             $tagList = [];
-            
             foreach ($tags as $tag) {
                 if ($tag->isUserVisible() && $tag->isUserAssignable()) {
                     $tagList[] = [
@@ -53,7 +52,6 @@ class SearchController extends Controller {
                     ];
                 }
             }
-            
             return new JSONResponse(['tags' => $tagList]);
         } catch (\Exception $e) {
             return new JSONResponse(['error' => $e->getMessage()], 500);
@@ -65,107 +63,53 @@ class SearchController extends Controller {
      */
     public function searchByTag(): JSONResponse {
         $query = $this->request->getParam('query', '');
-        
-        $this->logger->info('Tags Search: Query: ' . $query);
-        
         if (empty($query)) {
             return new JSONResponse(['files' => []]);
         }
-        
         try {
-            // Parse da query
             $parsedQuery = $this->parseSearchQuery($query);
-            $this->logger->info('Tags Search: Parsed query: ' . json_encode($parsedQuery));
-            
             $userFolder = $this->rootFolder->getUserFolder($this->userId);
             $allTags = $this->tagManager->getAllTags(true);
-            
-            // Mapeia nomes de tags para IDs
             $tagNameToId = [];
             foreach ($allTags as $tag) {
                 $tagNameToId[$tag->getName()] = $tag->getId();
             }
-            
-            // Executa a busca baseada na query parseada
             $fileIds = $this->executeSearch($parsedQuery, $tagNameToId);
-            
             if (empty($fileIds)) {
                 return new JSONResponse(['files' => []]);
             }
-            
-            // Obtém informações dos arquivos
             $results = [];
             foreach ($fileIds as $fileId) {
-                try {
-                    $nodes = $userFolder->getById($fileId);
-                    if (!empty($nodes)) {
-                        $node = $nodes[0];
-                        
-                        if (!$node->isReadable()) {
-                            continue;
-                        }
-                        
-                        // Obtém todas as tags do arquivo
-                        $fileTags = [];
-                        $tagIdsForFile = $this->tagMapper->getTagIdsForObjects([$fileId], 'files');
-                        if (isset($tagIdsForFile[$fileId])) {
-                            foreach ($tagIdsForFile[$fileId] as $tid) {
-                                try {
-                                    $tags = $this->tagManager->getTagsByIds([$tid]);
-                                    if (!empty($tags)) {
-                                        $fileTags[] = $tags[0]->getName();
-                                    }
-                                } catch (\Exception $e) {
-                                    continue;
-                                }
-                            }
-                        }
-                        
-                        $relativePath = $userFolder->getRelativePath($node->getPath());
-                        $results[] = [
-                            'id' => $node->getId(),
-                            'name' => $node->getName(),
-                            'path' => dirname($relativePath),
-                            'tags' => $fileTags,
-                            'size' => $node->getSize(),
-                            'mtime' => $node->getMTime(),
-                            'mimetype' => $node->getMimeType(),
-                            'type' => $node->getType() === \OCP\Files\FileInfo::TYPE_FOLDER ? 'folder' : 'file',
-                            'url' => $this->urlGenerator->getAbsoluteURL('/index.php/apps/files?dir=' . urlencode(dirname($relativePath)) . '&scrollto=' . urlencode($node->getName())
-                            ),
-                        ];
+                $nodes = $userFolder->getById($fileId);
+                if (!empty($nodes)) {
+                    $node = $nodes[0];
+                    if (!$node->isReadable()) {
+                        continue;
                     }
-                } catch (\Exception $e) {
-                    continue;
+                    $relativePath = $userFolder->getRelativePath($node->getPath());
+                    $results[] = [
+                        'id' => $node->getId(),
+                        'name' => $node->getName(),
+                        'path' => dirname($relativePath),
+                        'url' => $this->urlGenerator->getAbsoluteURL(
+                            '/index.php/apps/files?dir=' . urlencode(dirname($relativePath)) . '&scrollto=' . urlencode($node->getName())
+                        )
+                    ];
                 }
             }
-            
-            // Ordena por nome
-            usort($results, function($a, $b) {
-                return strcasecmp($a['name'], $b['name']);
-            });
-            
             return new JSONResponse(['files' => $results]);
         } catch (\Exception $e) {
-            $this->logger->error('Tags Search: Error: ' . $e->getMessage());
+            $this->logger->error('Search error: ' . $e->getMessage());
             return new JSONResponse(['error' => $e->getMessage()], 500);
         }
     }
-    
+
     private function parseSearchQuery(string $query): array {
-        // Converte para maiúsculas para facilitar o parsing
-        $upperQuery = strtoupper($query);
-        
-        // Separa por OR primeiro
         $orParts = preg_split('/\s+OR\s+/i', $query);
-        
         $parsedParts = [];
         foreach ($orParts as $orPart) {
-            // Separa por AND
             $andParts = preg_split('/\s+AND\s+/i', $orPart);
-            $andTags = array_map('trim', $andParts);
-            $andTags = array_filter($andTags); // Remove vazios
-            
+            $andTags = array_filter(array_map('trim', $andParts));
             if (!empty($andTags)) {
                 $parsedParts[] = [
                     'type' => 'AND',
@@ -173,48 +117,32 @@ class SearchController extends Controller {
                 ];
             }
         }
-        
-        return [
-            'type' => 'OR',
-            'groups' => $parsedParts
-        ];
+        return ['type' => 'OR', 'groups' => $parsedParts];
     }
-    
+
     private function executeSearch(array $parsedQuery, array $tagNameToId): array {
         $allFileIds = [];
-        
-        // Para cada grupo OR
         foreach ($parsedQuery['groups'] as $group) {
             if ($group['type'] === 'AND') {
-                // Busca arquivos que tenham TODAS as tags do grupo
                 $groupFileIds = null;
-                
                 foreach ($group['tags'] as $tagName) {
                     if (!isset($tagNameToId[$tagName])) {
-                        $this->logger->info('Tag not found: ' . $tagName);
                         $groupFileIds = [];
                         break;
                     }
-                    
                     $tagId = $tagNameToId[$tagName];
                     $tagFileIds = $this->tagMapper->getObjectIdsForTags([$tagId], 'files');
-                    
                     if ($groupFileIds === null) {
                         $groupFileIds = $tagFileIds;
                     } else {
-                        // Interseção - mantém apenas arquivos que têm todas as tags
                         $groupFileIds = array_intersect($groupFileIds, $tagFileIds);
                     }
                 }
-                
                 if (!empty($groupFileIds)) {
-                    // União com os resultados anteriores (OR)
                     $allFileIds = array_merge($allFileIds, $groupFileIds);
                 }
             }
         }
-        
-        // Remove duplicatas
         return array_unique($allFileIds);
     }
 }
