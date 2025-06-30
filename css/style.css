@@ -16,12 +16,12 @@
     flex: 1;
     padding: 20px;
     overflow-y: auto;
-    background-color: white; /* Fundo branco */
+    background-color: white;
 }
 
 .filelist {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Ajusta tamanho responsivo */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Ajusta automaticamente */
     gap: 15px;
     list-style-type: none;
     padding: 0;
@@ -29,7 +29,7 @@
 
 .filelist .file {
     text-align: center;
-    background-color: white; /* Fundo branco */
+    background-color: white;
     padding: 10px;
     border-radius: 4px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
