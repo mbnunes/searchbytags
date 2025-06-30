@@ -4,28 +4,18 @@ document.addEventListener('DOMContentLoaded', async function () {
     const urlParams = new URLSearchParams(window.location.search);
     const query = urlParams.get('query');
 
-    // Preenche o input se já tem query na URL
     if (query) {
         input.value = query;
         await loadResults(query);
     }
 
-    // AutoComplete simples
     input.addEventListener('input', async function () {
         const val = input.value.trim();
         if (val.length >= 2) {
-            const tagSuggestions = await fetchTags(val);
-            input.setAttribute('list', 'tag-suggestions');
-
-            let datalist = document.getElementById('tag-suggestions');
-            if (!datalist) {
-                datalist = document.createElement('datalist');
-                datalist.id = 'tag-suggestions';
-                document.body.appendChild(datalist);
-            }
-
+            const tags = await fetchTags(val);
+            const datalist = document.getElementById('tag-suggestions');
             datalist.innerHTML = '';
-            tagSuggestions.forEach(tag => {
+            tags.forEach(tag => {
                 const opt = document.createElement('option');
                 opt.value = tag.name;
                 datalist.appendChild(opt);
@@ -41,10 +31,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     async function fetchTags(filter) {
         try {
-            const response = await fetch(OC.generateUrl('/ocs/v2.php/apps/files/api/v1/tags') + '?format=json', {
-                headers: {
-                    'OCS-APIREQUEST': 'true'
-                }
+            const response = await fetch(OC.generateUrl('/ocs/v2.php/apps/files/api/v1/tags?format=json'), {
+                headers: { 'OCS-APIREQUEST': 'true' }
             });
             const data = await response.json();
             return data.ocs.data.filter(tag => tag.name.toLowerCase().includes(filter.toLowerCase()));
@@ -62,51 +50,36 @@ document.addEventListener('DOMContentLoaded', async function () {
             tagResults.innerHTML = '';
 
             if (!data.files || data.files.length === 0) {
-                tagResults.innerHTML = '<p>Nenhum arquivo encontrado com essas tags.</p>';
+                tagResults.innerHTML = '<li>Nenhum arquivo encontrado com essas tags.</li>';
                 return;
             }
 
-            const container = document.createElement('ul');
-            container.className = 'fileListView';
-            container.style.display = 'flex';
-            container.style.flexWrap = 'wrap';
-            container.style.gap = '1.5em';
-
             data.files.forEach(file => {
-                const item = document.createElement('li');
-                item.className = 'file';
-                item.style.listStyle = 'none';
-                item.style.width = '160px';
+                const li = document.createElement('li');
+                li.className = 'file';
+                li.dataset.file = file.name;
 
                 const link = document.createElement('a');
                 link.href = OC.generateUrl('/apps/files') + '?dir=' + encodeURIComponent(file.path) + '&scrollto=' + encodeURIComponent(file.name);
                 link.className = 'filename';
-                link.style.display = 'block';
-                link.style.textAlign = 'center';
 
-                const thumb = document.createElement('img');
-                thumb.src = OC.generateUrl(`/apps/files/api/v1/thumbnail/${file.fileid}/256`);
-                thumb.alt = file.name;
-                thumb.className = 'thumbnail';
-                thumb.style.width = '100%';
-                thumb.style.borderRadius = '8px';
+                const img = document.createElement('img');
+                img.src = OC.generateUrl(`/apps/files/api/v1/thumbnail/${file.fileid}/256`);
+                img.alt = file.name;
+                img.className = 'thumbnail';
 
-                const title = document.createElement('div');
-                title.textContent = file.name;
-                title.style.marginTop = '0.5em';
-                title.style.fontSize = '0.9em';
-                title.style.wordBreak = 'break-word';
+                const name = document.createElement('span');
+                name.textContent = file.name;
+                name.className = 'nametext';
 
-                link.appendChild(thumb);
-                link.appendChild(title);
-                item.appendChild(link);
-                container.appendChild(item);
+                link.appendChild(img);
+                link.appendChild(name);
+                li.appendChild(link);
+                tagResults.appendChild(li);
             });
-
-            tagResults.appendChild(container);
         } catch (error) {
             console.error('Erro ao buscar arquivos por tag:', error);
-            tagResults.innerHTML = '<p>Erro ao buscar arquivos.</p>';
+            tagResults.innerHTML = '<li>Erro ao buscar arquivos.</li>';
         }
     }
 });
