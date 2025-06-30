@@ -73,8 +73,11 @@ document.addEventListener('DOMContentLoaded', async function () {
                 const name = document.createElement('span');
                 name.textContent = file.name;
                 name.className = 'nametext';
+
+                const br = document.createElement('br');
                 
                 link.appendChild(img);
+                link.appendChield(br);
                 link.appendChild(name);
                 li.appendChild(link);
                 tagResults.appendChild(li);
