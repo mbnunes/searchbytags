@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 link.target = '_blank'; // Abre em uma nova aba
 
                 const img = document.createElement('img');
-                img.src = OC.generateUrl(`/apps/files/api/v1/thumbnail/${file.fileid}/256`);
+                img.src = OC.generateUrl(`/apps/files/api/v1/thumbnail/${file.id}/256`);
                 img.alt = file.name;
                 img.className = 'thumbnail';
 
