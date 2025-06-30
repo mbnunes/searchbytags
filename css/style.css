@@ -1,34 +1,43 @@
 .container {
-    display: flex; 
-    height: 100vh; 
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .sidebar {
-    width: 250px; 
-    background-color: #eaeaea; 
-    padding: 20px; 
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); 
+    width: 250px;
+    background-color: #eaeaea;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
 }
 
 .main-content {
-    flex: 1; 
+    flex: 1;
     padding: 20px;
-    overflow-y: auto; 
+    overflow-y: auto;
+    background-color: white; /* Fundo branco */
 }
 
 .filelist {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Ajusta tamanho responsivo */
+    gap: 15px;
     list-style-type: none;
     padding: 0;
 }
 
 .filelist .file {
     text-align: center;
+    background-color: white; /* Fundo branco */
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .filelist .thumbnail {
     width: 100%;
-    height: auto;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 4px;
 }
