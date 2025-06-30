@@ -52,17 +52,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
 
             data.files.forEach(file => {
-                // Verifique se file.path não está vazio ou em branco
-                if (!file.path || file.path.trim() === '') {
-                    console.log(`Caminho vazio para o arquivo: ${file.name}`);
-                    return; // Pula para o próximo item no loop
-                }
 
                 console.log('File:', file); // Debug: Exibir cada arquivo
                 const li = document.createElement('li');
                 li.className = 'file';
 
-                const fileUrl = OC.generateUrl(`/remote.php/webdav${file.path}/${file.name}`);
+                const fileUrl = OC.generateUrl(`/remote.php/webdav${file.path}${file.name}`);
                 console.log('File URL:', fileUrl);  // Debug: Verifique a URL do arquivo
 
                 const link = document.createElement('a');
