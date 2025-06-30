@@ -72,11 +72,14 @@ document.addEventListener('DOMContentLoaded', async function () {
                 const name = document.createElement('span');
                 name.textContent = file.name;
                 name.className = 'nametext';
-
-                link.appendChild(img);
-                link.appendChild(name);
-                li.appendChild(link);
-                tagResults.appendChild(li);
+                
+                if(file.path !== ""){
+                    link.appendChild(img);
+                    link.appendChild(name);
+                    li.appendChild(link);
+                    tagResults.appendChild(li);
+                }
+                
             });
         } catch (error) {
             console.error('Erro ao buscar arquivos por tag:', error);
