@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         try {
             const res = await fetch(OC.generateUrl('/apps/search_by_tags/api/search') + '?query=' + encodeURIComponent(query));
             const data = await res.json();
+            console.log('Data:', data); // Debug: Exibir resposta completa da API
 
             tagResults.innerHTML = '';
 
@@ -51,10 +52,10 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
 
             data.files.forEach(file => {
+                console.log('File:', file); // Debug: Exibir cada arquivo
                 const li = document.createElement('li');
                 li.className = 'file';
 
-                // Construa a URL do arquivo
                 const fileUrl = OC.generateUrl(`/remote.php/webdav/${file.path}/${file.name}`);
                 console.log('File URL:', fileUrl);  // Debug: Verifique a URL do arquivo
 
@@ -63,11 +64,8 @@ document.addEventListener('DOMContentLoaded', async function () {
                 link.className = 'filename';
                 link.target = '_blank'; // Abre em uma nova aba
 
-                // Verifique se o fileid está definido
-                console.log('File ID:', file.fileid);  // Debug: Verifique o fileid
-
                 const img = document.createElement('img');
-                img.src = OC.generateUrl(`/apps/files/api/v1/thumbnail/${file.fileid}/256`); 
+                img.src = OC.generateUrl(`/apps/files/api/v1/thumbnail/${file.fileid}/256`);
                 img.alt = file.name;
                 img.className = 'thumbnail';
 
