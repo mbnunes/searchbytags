@@ -1,17 +1,66 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+    const input = document.getElementById('tag-input');
     const tagResults = document.getElementById('tag-results');
-    if (!tagResults) return;
-
     const urlParams = new URLSearchParams(window.location.search);
     const query = urlParams.get('query');
-    if (!query) {
-        tagResults.innerHTML = '<p>Nenhuma tag fornecida.</p>';
-        return;
+
+    // Preenche o input se já tem query na URL
+    if (query) {
+        input.value = query;
+        await loadResults(query);
     }
 
-    fetch(OC.generateUrl('/apps/search_by_tags/api/search?query=') + encodeURIComponent(query))
-        .then(response => response.json())
-        .then(data => {
+    // AutoComplete simples
+    input.addEventListener('input', async function () {
+        const val = input.value.trim();
+        if (val.length >= 2) {
+            const tagSuggestions = await fetchTags(val);
+            input.setAttribute('list', 'tag-suggestions');
+
+            let datalist = document.getElementById('tag-suggestions');
+            if (!datalist) {
+                datalist = document.createElement('datalist');
+                datalist.id = 'tag-suggestions';
+                document.body.appendChild(datalist);
+            }
+
+            datalist.innerHTML = '';
+            tagSuggestions.forEach(tag => {
+                const opt = document.createElement('option');
+                opt.value = tag.name;
+                datalist.appendChild(opt);
+            });
+        }
+    });
+
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            window.location.href = OC.generateUrl('/apps/search_by_tags/') + '?query=' + encodeURIComponent(input.value);
+        }
+    });
+
+    async function fetchTags(filter) {
+        try {
+            const response = await fetch(OC.generateUrl('/ocs/v2.php/apps/files/api/v1/tags') + '?format=json', {
+                headers: {
+                    'OCS-APIREQUEST': 'true'
+                }
+            });
+            const data = await response.json();
+            return data.ocs.data.filter(tag => tag.name.toLowerCase().includes(filter.toLowerCase()));
+        } catch (err) {
+            console.error('Erro ao buscar tags:', err);
+            return [];
+        }
+    }
+
+    async function loadResults(query) {
+        try {
+            const res = await fetch(OC.generateUrl('/apps/search_by_tags/api/search') + '?query=' + encodeURIComponent(query));
+            const data = await res.json();
+
+            tagResults.innerHTML = '';
+
             if (!data.files || data.files.length === 0) {
                 tagResults.innerHTML = '<p>Nenhum arquivo encontrado com essas tags.</p>';
                 return;
@@ -54,11 +103,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 container.appendChild(item);
             });
 
-            tagResults.innerHTML = '';
             tagResults.appendChild(container);
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('Erro ao buscar arquivos por tag:', error);
             tagResults.innerHTML = '<p>Erro ao buscar arquivos.</p>';
-        });
+        }
+    }
 });
