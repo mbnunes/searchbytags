@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 const br = document.createElement('br');
                 
                 link.appendChild(img);
-                link.appendChield(br);
+                link.appendChild(br);
                 link.appendChild(name);
                 li.appendChild(link);
                 tagResults.appendChild(li);
