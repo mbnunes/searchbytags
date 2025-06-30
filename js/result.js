@@ -53,11 +53,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             data.files.forEach(file => {
                 const li = document.createElement('li');
                 li.className = 'file';
-                li.dataset.file = file.name;
 
                 const link = document.createElement('a');
-                link.href = OC.generateUrl('/apps/files') + '?dir=' + encodeURIComponent(file.path) + '&scrollto=' + encodeURIComponent(file.name);
+                // Use o campo correto para a URL direta do arquivo
+                link.href = OC.generateUrl(`/remote.php/webdav/${file.path}/${file.name}`);
                 link.className = 'filename';
+                link.target = '_blank'; // Abre em uma nova aba
 
                 const img = document.createElement('img');
                 img.src = OC.generateUrl(`/apps/files/api/v1/thumbnail/${file.fileid}/256`);
