@@ -1,8 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
     const tagResults = document.getElementById('tag-results');
+    if (!tagResults) return;
+
     const urlParams = new URLSearchParams(window.location.search);
     const query = urlParams.get('query');
-
     if (!query) {
         tagResults.innerHTML = '<p>Nenhuma tag fornecida.</p>';
         return;
@@ -16,36 +17,41 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            const container = document.createElement('div');
+            const container = document.createElement('ul');
+            container.className = 'fileListView';
             container.style.display = 'flex';
             container.style.flexWrap = 'wrap';
-            container.style.gap = '1em';
+            container.style.gap = '1.5em';
 
             data.files.forEach(file => {
-                const fileCard = document.createElement('div');
-                fileCard.style.width = '150px';
-                fileCard.style.border = '1px solid #ccc';
-                fileCard.style.borderRadius = '8px';
-                fileCard.style.overflow = 'hidden';
-                fileCard.style.textAlign = 'center';
-                fileCard.style.background = '#fff';
-                fileCard.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+                const item = document.createElement('li');
+                item.className = 'file';
+                item.style.listStyle = 'none';
+                item.style.width = '160px';
+
+                const link = document.createElement('a');
+                link.href = OC.generateUrl('/apps/files') + '?dir=' + encodeURIComponent(file.path) + '&scrollto=' + encodeURIComponent(file.name);
+                link.className = 'filename';
+                link.style.display = 'block';
+                link.style.textAlign = 'center';
 
                 const thumb = document.createElement('img');
                 thumb.src = OC.generateUrl(`/apps/files/api/v1/thumbnail/${file.fileid}/256`);
                 thumb.alt = file.name;
+                thumb.className = 'thumbnail';
                 thumb.style.width = '100%';
+                thumb.style.borderRadius = '8px';
 
                 const title = document.createElement('div');
                 title.textContent = file.name;
-                title.style.padding = '0.5em';
+                title.style.marginTop = '0.5em';
                 title.style.fontSize = '0.9em';
                 title.style.wordBreak = 'break-word';
 
-                fileCard.appendChild(thumb);
-                fileCard.appendChild(title);
-
-                container.appendChild(fileCard);
+                link.appendChild(thumb);
+                link.appendChild(title);
+                item.appendChild(link);
+                container.appendChild(item);
             });
 
             tagResults.innerHTML = '';
