@@ -54,14 +54,20 @@ document.addEventListener('DOMContentLoaded', async function () {
                 const li = document.createElement('li');
                 li.className = 'file';
 
+                // Construa a URL do arquivo
+                const fileUrl = OC.generateUrl(`/remote.php/webdav/${file.path}/${file.name}`);
+                console.log('File URL:', fileUrl);  // Debug: Verifique a URL do arquivo
+
                 const link = document.createElement('a');
-                // Use o campo correto para a URL direta do arquivo
-                link.href = OC.generateUrl(`/remote.php/webdav/${file.path}/${file.name}`);
+                link.href = fileUrl;
                 link.className = 'filename';
                 link.target = '_blank'; // Abre em uma nova aba
 
+                // Verifique se o fileid está definido
+                console.log('File ID:', file.fileid);  // Debug: Verifique o fileid
+
                 const img = document.createElement('img');
-                img.src = OC.generateUrl(`/apps/files/api/v1/thumbnail/${file.fileid}/256`);
+                img.src = OC.generateUrl(`/apps/files/api/v1/thumbnail/${file.fileid}/256`); 
                 img.alt = file.name;
                 img.className = 'thumbnail';
 
