@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         try {
             const res = await fetch(OC.generateUrl('/apps/search_by_tags/api/search') + '?query=' + encodeURIComponent(query));
             const data = await res.json();
-            console.log('Data:', data); // Debug
+            console.log('Data:', data); // Debug: Exibir resposta completa da API
 
             tagResults.innerHTML = '';
 
@@ -52,35 +52,18 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
 
             data.files.forEach(file => {
-                console.log('File:', file); // Debug
+
+                console.log('File:', file); // Debug: Exibir cada arquivo
                 const li = document.createElement('li');
                 li.className = 'file';
 
+               const fileUrl = OC.generateUrl(`/apps/files/?dir=${file.path}&scrollto=${file.name}`);
+                console.log('File URL:', fileUrl);  // Debug: Verifique a URL do arquivo
+
                 const link = document.createElement('a');
-                link.href = '#';
+                link.href = fileUrl;
                 link.className = 'filename';
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-
-                    // Garante que o viewer está carregado
-                    if (typeof OCA === 'undefined' || !OCA.Viewer || !OCA.Viewer.open) {
-                        console.error('OCA.Viewer não disponível');
-                        return;
-                    }
-
-                    // Abrir o visualizador de imagem
-                    OCA.Viewer.open({
-                        id: file.id,
-                        name: file.name,
-                        mime: file.mime || 'image/jpeg',
-                        path: file.path + '/' + file.name,
-                        size: file.size || 0,
-                        etag: file.etag || '',
-                        permissions: 1,
-                        type: 'file',
-                        directory: file.path
-                    });
-                });
+                link.target = '_blank'; // Abre em uma nova aba
 
                 const img = document.createElement('img');
                 img.src = OC.generateUrl(`/core/preview?fileId=${file.id}&x=128&y=128`);
@@ -91,7 +74,10 @@ document.addEventListener('DOMContentLoaded', async function () {
                 name.textContent = file.name;
                 name.className = 'nametext';
 
+                // const br = document.createElement('br');
+                
                 link.appendChild(img);
+                // link.appendChild(br);
                 link.appendChild(name);
                 li.appendChild(link);
                 tagResults.appendChild(li);

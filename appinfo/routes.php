@@ -1,7 +1,4 @@
 <?php
-
-\OCP\Util::addScript('viewer', 'viewer-main'); // carrega o OCA.Viewer
-
 return [
     'routes' => [
         ['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
