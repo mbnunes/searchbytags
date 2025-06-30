@@ -1,7 +1,7 @@
 .container {
     display: flex;
     height: 100vh;
-    overflow: hidden;
+    overflow: hidden; /* Esconde a rolagem que não seja necessária */
 }
 
 .sidebar {
@@ -16,28 +16,27 @@
     flex: 1;
     padding: 20px;
     overflow-y: auto;
-    background-color: white;
+    display: flex;
+    align-items: flex-start; /* Alinha o conteúdo ao topo */
+    justify-content: center; /* Centraliza horizontalmente */
 }
 
 .filelist {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Ajusta automaticamente */
-    gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Responsivo */
+    gap: 10px;
     list-style-type: none;
     padding: 0;
 }
 
 .filelist .file {
     text-align: center;
-    background-color: white;
-    padding: 10px;
-    border-radius: 4px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
 }
 
 .filelist .thumbnail {
     width: 100%;
     height: 150px;
-    object-fit: cover;
-    border-radius: 4px;
+    object-fit: cover; /* Ajusta imagem à caixa sem distorção */
+    border-radius: 4px; /* Arredonda os cantos */
 }
