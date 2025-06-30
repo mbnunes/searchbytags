@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 const li = document.createElement('li');
                 li.className = 'file';
 
-                const fileUrl = OC.generateUrl(`/remote.php/webdav${file.path}/${file.name}`);
+               const fileUrl = OC.generateUrl(`/apps/files/?dir=${file.path}&scrollto=${file.name}`);
                 console.log('File URL:', fileUrl);  // Debug: Verifique a URL do arquivo
 
                 const link = document.createElement('a');
