@@ -1,35 +1,58 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const query = new URLSearchParams(window.location.search).get('query') || '';
-  if (!query) return;
+document.addEventListener('DOMContentLoaded', function () {
+    const tagResults = document.getElementById('tag-results');
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get('query');
 
-  fetch(OC.generateUrl('/apps/search_by_tags/api/search') + '?query=' + encodeURIComponent(query))
-    .then(res => res.json())
-    .then(data => {
-      const grid = document.querySelector('.file-grid');
-      if (!data.files || data.files.length === 0) {
-        grid.innerHTML = '<p>Nenhum arquivo encontrado.</p>';
+    if (!query) {
+        tagResults.innerHTML = '<p>Nenhuma tag fornecida.</p>';
         return;
-      }
+    }
 
-      data.files.forEach(file => {
-        const card = document.createElement('div');
-        card.className = 'file-card';
+    fetch(OC.generateUrl('/apps/search_by_tags/api/search?query=') + encodeURIComponent(query))
+        .then(response => response.json())
+        .then(files => {
+            if (files.length === 0) {
+                tagResults.innerHTML = '<p>Nenhum arquivo encontrado com essas tags.</p>';
+                return;
+            }
 
-        const thumb = document.createElement('img');
-        thumb.className = 'file-thumb';
-        thumb.src = OC.generateUrl(`/index.php/core/preview?fileId=${file.id}&x=100&y=100`);
-        thumb.alt = file.name;
+            const container = document.createElement('div');
+            container.style.display = 'flex';
+            container.style.flexWrap = 'wrap';
+            container.style.gap = '1em';
 
-        const name = document.createElement('div');
-        name.textContent = file.name;
+            files.forEach(file => {
+                const fileCard = document.createElement('div');
+                fileCard.style.width = '150px';
+                fileCard.style.border = '1px solid #ccc';
+                fileCard.style.borderRadius = '8px';
+                fileCard.style.overflow = 'hidden';
+                fileCard.style.textAlign = 'center';
+                fileCard.style.background = '#fff';
+                fileCard.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
 
-        const link = document.createElement('a');
-        link.href = file.url;
-        link.appendChild(thumb);
-        link.appendChild(name);
+                const thumb = document.createElement('img');
+                thumb.src = OC.generateUrl(`/apps/files/api/v1/thumbnail/${file.fileid}/256`);
+                thumb.alt = file.name;
+                thumb.style.width = '100%';
 
-        card.appendChild(link);
-        grid.appendChild(card);
-      });
-    });
+                const title = document.createElement('div');
+                title.textContent = file.name;
+                title.style.padding = '0.5em';
+                title.style.fontSize = '0.9em';
+                title.style.wordBreak = 'break-word';
+
+                fileCard.appendChild(thumb);
+                fileCard.appendChild(title);
+
+                container.appendChild(fileCard);
+            });
+
+            tagResults.innerHTML = '';
+            tagResults.appendChild(container);
+        })
+        .catch(error => {
+            console.error('Erro ao buscar arquivos por tag:', error);
+            tagResults.innerHTML = '<p>Erro ao buscar arquivos.</p>';
+        });
 });
