@@ -1,0 +1,18 @@
+#tag-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Define uma grade de colunas variáveis */
+    gap: 10px;
+    list-style-type: none;
+    padding: 0;
+    overflow-y: auto; /* Ativa a barra de rolagem se necessário */
+    max-height: 80vh; /* Ajuste conforme necessário */
+}
+
+#tag-results .file {
+    text-align: center;
+}
+
+#tag-results .thumbnail {
+    width: 100px;
+    height: auto;
+}
