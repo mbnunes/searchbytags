@@ -10,8 +10,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     fetch(OC.generateUrl('/apps/search_by_tags/api/search?query=') + encodeURIComponent(query))
         .then(response => response.json())
-        .then(files => {
-            if (files.length === 0) {
+        .then(data => {
+            if (!data.files || data.files.length === 0) {
                 tagResults.innerHTML = '<p>Nenhum arquivo encontrado com essas tags.</p>';
                 return;
             }
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
             container.style.flexWrap = 'wrap';
             container.style.gap = '1em';
 
-            files.forEach(file => {
+            data.files.forEach(file => {
                 const fileCard = document.createElement('div');
                 fileCard.style.width = '150px';
                 fileCard.style.border = '1px solid #ccc';

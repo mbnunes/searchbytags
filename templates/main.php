@@ -1,5 +1,5 @@
 <?php
-script('search_by_tags', 'main');
+script('search_by_tags', 'result');
 ?>
 
 <div id="search-app">
