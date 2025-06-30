@@ -52,6 +52,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
 
             data.files.forEach(file => {
+                // Verifique se file.path não está vazio ou em branco
+                if (!file.path || file.path.trim() === '') {
+                    console.log(`Caminho vazio para o arquivo: ${file.name}`);
+                    return; // Pula para o próximo item no loop
+                }
+
                 console.log('File:', file); // Debug: Exibir cada arquivo
                 const li = document.createElement('li');
                 li.className = 'file';
@@ -73,13 +79,10 @@ document.addEventListener('DOMContentLoaded', async function () {
                 name.textContent = file.name;
                 name.className = 'nametext';
                 
-                if(file.path !== ""){
-                    link.appendChild(img);
-                    link.appendChild(name);
-                    li.appendChild(link);
-                    tagResults.appendChild(li);
-                }
-                
+                link.appendChild(img);
+                link.appendChild(name);
+                li.appendChild(link);
+                tagResults.appendChild(li);
             });
         } catch (error) {
             console.error('Erro ao buscar arquivos por tag:', error);
