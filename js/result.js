@@ -1,13 +1,6 @@
 document.addEventListener('DOMContentLoaded', async function () {
     const input = document.getElementById('tag-input');
     const tagResults = document.getElementById('tag-results');
-    const urlParams = new URLSearchParams(window.location.search);
-    const query = urlParams.get('query');
-
-    if (query) {
-        input.value = query;
-        await loadResults(query);
-    }
 
     input.addEventListener('input', async function () {
         const val = input.value.trim();
@@ -21,13 +14,16 @@ document.addEventListener('DOMContentLoaded', async function () {
                 datalist.appendChild(opt);
             });
         }
+        await loadResults(val);
+        history.replaceState(null, '', OC.generateUrl('/apps/search_by_tags/') + '?query=' + encodeURIComponent(val));
     });
 
-    input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-            window.location.href = OC.generateUrl('/apps/search_by_tags/') + '?query=' + encodeURIComponent(input.value);
-        }
-    });
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get('query');
+    if (query) {
+        input.value = query;
+        await loadResults(query);
+    }
 
     async function fetchTags(filter) {
         try {
