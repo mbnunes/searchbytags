@@ -18,7 +18,9 @@ style('search_by_tags', 'style'); // Seu CSS customizado
 		</ul>
 	</div>
 
-	<div class="app-content-list">
-		<ul id="tag-results" class="files-list"></ul>
+	<div id="app-content-vue">
+		<div class="app-content-list">
+			<ul id="tag-results" class="files-list"></ul>
+		</div>
 	</div>
 </div>
