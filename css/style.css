@@ -1,11 +1,13 @@
-.app-content {
+/* Wrapper principal do layout em flex */
+.search-by-tags-wrapper {
 	display: flex;
 	width: 100vw;
-	height: calc(100vh - 50px); /* ajuste conforme altura da barra do topo */
+	height: calc(100vh - 50px); /* Ajuste conforme necessário */
 	overflow: hidden;
 	box-sizing: border-box;
 }
 
+/* Sidebar lateral */
 .sidebar {
 	width: 280px;
 	background-color: #e0e0e0;
@@ -14,23 +16,15 @@
 	flex-shrink: 0;
 }
 
-/* Remove o max-width herdado do apps.scss */
-/* .app-content .app-content-list {
-	max-width: none !important;
+/* Força expansão da listagem para o restante da tela */
+.search-by-tags-wrapper .app-content-list {
+	max-width: none !important;  /* ESSENCIAL contra apps.scss */
 	width: 100%;
 	flex-grow: 1;
 	flex-shrink: 1;
 	flex-basis: 0;
 	min-width: 0;
-} */
 
-.app-content .app-content-list {
-	max-width: none !important;
-	width: 100%;
-	flex-grow: 1;
-	flex-shrink: 1;
-	flex-basis: 0;
-	min-width: 0;
 	background-color: white;
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -41,16 +35,6 @@
 }
 
 /* Demais estilos mantidos */
-
-.files-list {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 20px;
-	padding: 0;
-	margin: 0;
-	list-style: none;
-}
-
 .files-list .file {
 	width: 140px;
 	display: flex;
