@@ -1,9 +1,8 @@
 /* Layout geral baseado no app files */
 .app-content {
 	display: flex;
-	height: calc(100vh - 50px);
-	width: 100vw; /* ← Força a ocupar toda a largura da janela */
-	overflow: hidden;
+	height: calc(100vh - 50px); /* ajuste se necessário */
+	width: 100vw;
 }
 
 .app-navigation {
@@ -29,13 +28,14 @@
 	font-size: 14px;
 }
 
-/* Resultado em grade como o app files */
 .app-content-list {
 	flex: 1;
-	overflow-y: auto;
+	min-width: 0; /* ← IMPORTANTE para não encolher */
+	background-color: #fff;
 	padding: 20px;
-	background-color: #fff; /* ← cor branca */
+	overflow-y: auto;
 }
+
 
 .files-list {
 	display: flex;
@@ -69,3 +69,11 @@
 	font-size: 13px;
 	color: var(--color-text);
 }
+
+.sidebar {
+	width: 280px;
+	background-color: #e0e0e0;
+	padding: 1em;
+	box-sizing: border-box;
+}
+
