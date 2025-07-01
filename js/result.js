@@ -39,72 +39,66 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     async function loadResults(query) {
-    try {
-        const res = await fetch(OC.generateUrl('/apps/search_by_tags/api/search') + '?query=' + encodeURIComponent(query));
-        const data = await res.json();
-        console.log('Data:', data);
+	try {
+		const res = await fetch(OC.generateUrl('/apps/search_by_tags/api/search') + '?query=' + encodeURIComponent(query));
+		const data = await res.json();
 
-        tagResults.innerHTML = '';
+		const tagResults = document.getElementById('tag-results');
+		tagResults.innerHTML = '';
 
-        if (!data.files || data.files.length === 0) {
-            tagResults.innerHTML = '<li>Nenhum arquivo encontrado com essas tags.</li>';
-            return;
-        }
+		if (!data.files || data.files.length === 0) {
+			tagResults.innerHTML = '<li>Nenhum arquivo encontrado.</li>';
+			return;
+		}
 
-        const fileList = []; // galeria com todos os arquivos
+		const fileList = [];
 
-        data.files.forEach(file => {
-            fileList.push({
-                id: file.id,
-                name: file.name,
-                mime: file.mime || 'image/jpeg',
-                path: file.path + '/' + file.name,
-                size: file.size || 0,
-                etag: file.etag || '',
-                permissions: 1,
-                type: 'file',
-                directory: file.path
-            });
-        });
+		data.files.forEach(file => {
+			fileList.push({
+				id: file.id,
+				name: file.name,
+				mime: file.mime || 'image/jpeg',
+				path: file.path + '/' + file.name,
+				size: file.size || 0,
+				etag: file.etag || '',
+				permissions: 1,
+				type: 'file',
+				directory: file.path
+			});
+		});
 
-        data.files.forEach((file, index) => {
-            const li = document.createElement('li');
-            li.className = 'file';
+		data.files.forEach((file, index) => {
+			const li = document.createElement('li');
+			li.className = 'file';
 
-            const link = document.createElement('a');
-            link.href = '#';
-            link.className = 'filename';
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
+			const link = document.createElement('a');
+			link.href = '#';
+			link.addEventListener('click', (e) => {
+				e.preventDefault();
+				if (OCA?.Viewer?.open) {
+					OCA.Viewer.open(fileList, index);
+				}
+			});
 
-                if (!OCA || !OCA.Viewer || !OCA.Viewer.open) {
-                    console.error('OCA.Viewer não disponível');
-                    return;
-                }
+			const img = document.createElement('img');
+			img.src = OC.generateUrl(`/core/preview?fileId=${file.id}&x=128&y=128`);
+			img.alt = file.name;
+			img.className = 'thumbnail';
 
-                // Abre a galeria começando pelo arquivo clicado
-                OCA.Viewer.open(fileList, index);
-            });
+			const name = document.createElement('span');
+			name.textContent = file.name;
+			name.className = 'nametext';
 
-            const img = document.createElement('img');
-            img.src = OC.generateUrl(`/core/preview?fileId=${file.id}&x=128&y=128`);
-            img.alt = file.name;
-            img.className = 'thumbnail';
+			link.appendChild(img);
+			link.appendChild(name);
+			li.appendChild(link);
+			tagResults.appendChild(li);
+		});
 
-            const name = document.createElement('span');
-            name.textContent = file.name;
-            name.className = 'nametext';
-
-            link.appendChild(img);
-            link.appendChild(name);
-            li.appendChild(link);
-            tagResults.appendChild(li);
-        });
-
-    } catch (error) {
-        console.error('Erro ao buscar arquivos por tag:', error);
-        tagResults.innerHTML = '<li>Erro ao buscar arquivos.</li>';
-    }
+	} catch (err) {
+		console.error('Erro ao carregar arquivos:', err);
+	}
 }
+
 
 });
