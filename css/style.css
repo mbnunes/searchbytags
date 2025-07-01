@@ -1,9 +1,30 @@
 /* Layout geral baseado no app files */
 .app-content {
 	display: flex;
-	height: calc(100vh - 50px); /* ajuste se necessário */
 	width: 100vw;
+	height: calc(100vh - 50px); /* ajuste conforme altura da barra do topo */
+	overflow: hidden;
 }
+
+.sidebar {
+	width: 280px;
+	background-color: #e0e0e0;
+	padding: 1em;
+	box-sizing: border-box;
+	flex-shrink: 0;
+}
+
+.app-content-list {
+	flex-grow: 1;
+	flex-shrink: 1;
+	flex-basis: 0;
+	background-color: white;
+	padding: 1em;
+	box-sizing: border-box;
+	overflow-y: auto;
+	min-width: 0; /* ESSENCIAL para forçar expansão completa */
+}
+
 
 .app-navigation {
 	width: 250px;
@@ -28,13 +49,7 @@
 	font-size: 14px;
 }
 
-.app-content-list {
-	flex: 1;
-	min-width: 0; /* ← IMPORTANTE para não encolher */
-	background-color: #fff;
-	padding: 20px;
-	overflow-y: auto;
-}
+
 
 
 .files-list {
@@ -70,10 +85,4 @@
 	color: var(--color-text);
 }
 
-.sidebar {
-	width: 280px;
-	background-color: #e0e0e0;
-	padding: 1em;
-	box-sizing: border-box;
-}
 
