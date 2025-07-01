@@ -39,52 +39,72 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     async function loadResults(query) {
-        try {
-            const res = await fetch(OC.generateUrl('/apps/search_by_tags/api/search') + '?query=' + encodeURIComponent(query));
-            const data = await res.json();
-            console.log('Data:', data); // Debug: Exibir resposta completa da API
+    try {
+        const res = await fetch(OC.generateUrl('/apps/search_by_tags/api/search') + '?query=' + encodeURIComponent(query));
+        const data = await res.json();
+        console.log('Data:', data);
 
-            tagResults.innerHTML = '';
+        tagResults.innerHTML = '';
 
-            if (!data.files || data.files.length === 0) {
-                tagResults.innerHTML = '<li>Nenhum arquivo encontrado com essas tags.</li>';
-                return;
-            }
-
-            data.files.forEach(file => {
-
-                console.log('File:', file); // Debug: Exibir cada arquivo
-                const li = document.createElement('li');
-                li.className = 'file';
-
-                const fileUrl = OC.generateUrl(`/remote.php/webdav${file.path}/${file.name}`);
-                console.log('File URL:', fileUrl);  // Debug: Verifique a URL do arquivo
-
-                const link = document.createElement('a');
-                link.href = fileUrl;
-                link.className = 'filename';
-                link.target = '_blank'; // Abre em uma nova aba
-
-                const img = document.createElement('img');
-                img.src = OC.generateUrl(`/core/preview?fileId=${file.id}&x=128&y=128`);
-                img.alt = file.name;
-                img.className = 'thumbnail';
-
-                const name = document.createElement('span');
-                name.textContent = file.name;
-                name.className = 'nametext';
-
-                // const br = document.createElement('br');
-                
-                link.appendChild(img);
-                // link.appendChild(br);
-                link.appendChild(name);
-                li.appendChild(link);
-                tagResults.appendChild(li);
-            });
-        } catch (error) {
-            console.error('Erro ao buscar arquivos por tag:', error);
-            tagResults.innerHTML = '<li>Erro ao buscar arquivos.</li>';
+        if (!data.files || data.files.length === 0) {
+            tagResults.innerHTML = '<li>Nenhum arquivo encontrado com essas tags.</li>';
+            return;
         }
+
+        const fileList = []; // galeria com todos os arquivos
+
+        data.files.forEach(file => {
+            fileList.push({
+                id: file.id,
+                name: file.name,
+                mime: file.mime || 'image/jpeg',
+                path: file.path + '/' + file.name,
+                size: file.size || 0,
+                etag: file.etag || '',
+                permissions: 1,
+                type: 'file',
+                directory: file.path
+            });
+        });
+
+        data.files.forEach((file, index) => {
+            const li = document.createElement('li');
+            li.className = 'file';
+
+            const link = document.createElement('a');
+            link.href = '#';
+            link.className = 'filename';
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                if (!OCA || !OCA.Viewer || !OCA.Viewer.open) {
+                    console.error('OCA.Viewer não disponível');
+                    return;
+                }
+
+                // Abre a galeria começando pelo arquivo clicado
+                OCA.Viewer.open(fileList, index);
+            });
+
+            const img = document.createElement('img');
+            img.src = OC.generateUrl(`/core/preview?fileId=${file.id}&x=128&y=128`);
+            img.alt = file.name;
+            img.className = 'thumbnail';
+
+            const name = document.createElement('span');
+            name.textContent = file.name;
+            name.className = 'nametext';
+
+            link.appendChild(img);
+            link.appendChild(name);
+            li.appendChild(link);
+            tagResults.appendChild(li);
+        });
+
+    } catch (error) {
+        console.error('Erro ao buscar arquivos por tag:', error);
+        tagResults.innerHTML = '<li>Erro ao buscar arquivos.</li>';
     }
+}
+
 });
