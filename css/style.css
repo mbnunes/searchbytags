@@ -1,7 +1,8 @@
 /* Layout geral baseado no app files */
 .app-content {
 	display: flex;
-	height: calc(100vh - 50px); /* Ajusta abaixo do header */
+	height: calc(100vh - 50px);
+	width: 100vw; /* ← Força a ocupar toda a largura da janela */
 	overflow: hidden;
 }
 
@@ -33,7 +34,7 @@
 	flex: 1;
 	overflow-y: auto;
 	padding: 20px;
-	background-color: var(--color-main-background);
+	background-color: #fff; /* ← cor branca */
 }
 
 .files-list {
