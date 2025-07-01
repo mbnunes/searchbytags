@@ -86,3 +86,12 @@
 }
 
 
+/* Remove o max-width herdado do apps.scss */
+.app-content .app-content-list {
+	max-width: none !important;
+	width: 100%;
+	flex-grow: 1;
+	flex-shrink: 1;
+	flex-basis: 0;
+	min-width: 0;
+}
