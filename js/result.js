@@ -2,22 +2,29 @@ document.addEventListener('DOMContentLoaded', async function () {
 	const input = document.getElementById('tag-input');
 	const tagResults = document.getElementById('tag-results');
 
-	input.addEventListener('input', async function () {
-		const val = input.value.trim();
-		if (val.length >= 2) {
-			const tags = await fetchTags(val);
-			const datalist = document.getElementById('tag-suggestions');
-			datalist.innerHTML = '';
-			tags.forEach(tag => {
-				const opt = document.createElement('option');
-				opt.value = tag.name;
-				datalist.appendChild(opt);
-			});
-		}
-		await loadResults(val);
-		await renderTagFolders(val);
-		history.replaceState(null, '', OC.generateUrl('/apps/search_by_tags/') + '?query=' + encodeURIComponent(val));
+	let debounceTimeout;
+
+	input.addEventListener('input', function () {
+		clearTimeout(debounceTimeout);
+
+		debounceTimeout = setTimeout(async () => {
+			const val = input.value.trim();
+			if (val.length >= 2) {
+				const tags = await fetchTags(val);
+				const datalist = document.getElementById('tag-suggestions');
+				datalist.innerHTML = '';
+				tags.forEach(tag => {
+					const opt = document.createElement('option');
+					opt.value = tag.name;
+					datalist.appendChild(opt);
+				});
+			}
+			await loadResults(val);
+			await renderTagFolders(val);
+			history.replaceState(null, '', OC.generateUrl('/apps/search_by_tags/') + '?query=' + encodeURIComponent(val));
+		}, 300); // 300ms de atraso após o último caractere digitado
 	});
+
 
 	const urlParams = new URLSearchParams(window.location.search);
 	const query = urlParams.get('query');
