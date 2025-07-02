@@ -106,19 +106,12 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 				const name = document.createElement('div');
 				name.className = 'filename';
-				name.title = file.name;
-				name.textContent = shortenFilename(file.name);
+				name.textContent = file.name;
 
-				// Data formatada
-				const date = document.createElement('div');
-				date.className = 'filedate';
-				date.textContent = formatDate(file.mtime);
-
-				// Adiciona elementos
 				link.appendChild(img);
 				link.appendChild(name);
-				link.appendChild(date);
 				item.appendChild(link);
+				tagResults.appendChild(item);
 			});
 
 		} catch (err) {
@@ -166,29 +159,3 @@ document.addEventListener('DOMContentLoaded', async function () {
 		});
 	}
 });
-
-
-function shortenFilename(filename, maxLength = 30) {
-	if (filename.length <= maxLength) {
-		return filename;
-	}
-
-	const extIndex = filename.lastIndexOf('.');
-	const namePart = filename.substring(0, extIndex);
-	const extPart = filename.substring(extIndex);
-
-	const keep = Math.floor((maxLength - extPart.length - 3) / 2);
-	return namePart.substring(0, keep) + '...' + namePart.substring(namePart.length - keep) + extPart;
-}
-
-function formatDate(timestamp) {
-	if (!timestamp) return '';
-	const date = new Date(timestamp * 1000);
-	return date.toLocaleString('pt-BR', {
-		day: '2-digit',
-		month: '2-digit',
-		year: 'numeric',
-		hour: '2-digit',
-		minute: '2-digit'
-	});
-}
