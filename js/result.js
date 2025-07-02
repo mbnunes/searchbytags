@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 	async function renderTagFolders(query) {
 		const tagFoldersContainer = document.getElementById('tag-folders');
 		tagFoldersContainer.innerHTML = ''; // Limpa conteúdo anterior
-		console.error('testes', query);
+
 		if (!query) return;
 
 		// Extrai as tags sem operadores lógicos
@@ -130,6 +130,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 				headers: { 'OCS-APIREQUEST': 'true' }
 			});
 			const data = await response.json();
+			console.log(data);
 			allTags = data.ocs.data;
 		} catch (err) {
 			console.error('Erro ao buscar todas as tags:', err);
