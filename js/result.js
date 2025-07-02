@@ -23,8 +23,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 	const query = urlParams.get('query');
 	if (query) {
 		input.value = query;
-		await loadResults(val);
-		await renderTagFolders(val);
+		await loadResults(query);
+		await renderTagFolders(query);
 	}
 
 	async function fetchTags(filter) {
