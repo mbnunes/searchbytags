@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 		debounceTimeout = setTimeout(async () => {
 			const val = input.value.trim();
 			if (val.length >= 2) {
-				const tags = await fetchTags(val);
+				const tags = await fetchTags();
 				const datalist = document.getElementById('tag-suggestions');
 				datalist.innerHTML = '';
 				tags.forEach(tag => {
@@ -34,18 +34,29 @@ document.addEventListener('DOMContentLoaded', async function () {
 		await renderTagFolders(query);
 	}
 
-	async function fetchTags(filter) {
+	async function fetchTags() {
+		let allTags = [];
+
 		try {
-			const response = await fetch(OC.generateUrl('/ocs/v2.php/apps/files/api/v1/tags?format=json'), {
-				headers: { 'OCS-APIREQUEST': 'true' }
+			const response = await fetch(OC.generateUrl('/apps/search_by_tags/search/getAllTags'), {
+				headers: { 'OCS-APIREQUEST': 'true' },
+				credentials: 'include' // garante que o cookie de sessão do Nextcloud seja enviado
 			});
+
 			const data = await response.json();
-			return data.ocs.data.filter(tag => tag.name.toLowerCase().includes(filter.toLowerCase()));
+
+			if (data.tags) {
+				allTags = data.tags;
+			} else {
+				console.warn('Resposta inesperada:', data);
+			}
 		} catch (err) {
-			console.error('Erro ao buscar tags:', err);
-			return [];
+			console.error('Erro ao buscar todas as tags:', err);
 		}
+
+		return allTags;
 	}
+
 
 	async function loadResults(query) {
 		try {
@@ -123,21 +134,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 		if (tagParts.length === 0) return;
 
-		// Busca todas as tags disponíveis via API
-		let allTags = [];
-		try {
-			const response = await fetch(OC.generateUrl('/ocs/v2.php/apps/files/api/v1/tags?format=json'), {
-				headers: { 'OCS-APIREQUEST': 'true' },
-				credentials: 'include'  // ESSENCIAL para enviar cookies de sessão
-			});
-			const data = await response.json();
-			allTags = data.ocs.data;
-		} catch (err) {
-			console.error('Erro ao buscar todas as tags:', err);
-			return;
-		}
-
-		console.log(allTags);
+		// Busca todas as tags disponíveis via sua API personalizada
+		let allTags = await fetchTags();
 
 		// Mapeia tag buscada para tag real com ID
 		tagParts.forEach(inputTag => {
@@ -160,6 +158,4 @@ document.addEventListener('DOMContentLoaded', async function () {
 			}
 		});
 	}
-
-
 });
