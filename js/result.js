@@ -102,18 +102,31 @@ document.addEventListener('DOMContentLoaded', async function () {
 	}
 
 	function renderTagFolders(query) {
-		const tagFoldersContainer = document.getElementById('tag-folders');
-		tagFoldersContainer.innerHTML = ''; // Limpa conteúdo anterior
+	const tagFoldersContainer = document.getElementById('tag-folders');
+	tagFoldersContainer.innerHTML = ''; // Limpa conteúdo anterior
 
-		if (!query) return;
+	if (!query) return;
 
-		const tagParts = query.split(/\s+(AND|OR)\s+/i).filter(t => t !== 'AND' && t !== 'OR');
+	const operators = ['and', 'or'];
+	const tagParts = query.split(/\s+/).filter(t => !operators.includes(t.toLowerCase()));
 
-		tagParts.forEach(tag => {
-			const tagDiv = document.createElement('div');
-			tagDiv.className = 'app-navigation-entry';
-			tagDiv.textContent = tag;
-			tagFoldersContainer.appendChild(tagDiv);
-		});
-	}
+	tagParts.forEach(tag => {
+		const tagLink = document.createElement('a');
+		tagLink.className = 'tag-link';
+		tagLink.href = OC.generateUrl(`/apps/files/?dir=/tags/${encodeURIComponent(tag)}`);
+
+		// Ícone (você pode substituir por SVG ou tag <img> se quiser)
+		const icon = document.createElement('span');
+		icon.className = 'icon-tag';
+		icon.textContent = '🏷️'; // ou use um ícone do Nextcloud se preferir
+
+		const label = document.createElement('span');
+		label.textContent = tag;
+
+		tagLink.appendChild(icon);
+		tagLink.appendChild(label);
+		tagFoldersContainer.appendChild(tagLink);
+	});
+}
+
 });
