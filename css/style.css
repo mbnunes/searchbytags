@@ -1,22 +1,31 @@
-/* --- LAYOUT PRINCIPAL --- */
+/* Wrapper principal do layout em flex */
 .search-by-tags-wrapper {
 	display: flex;
 	width: 100vw;
-	height: calc(100vh - 50px);
+	height: calc(100vh - 50px); /* Ajuste conforme necessário */
 	overflow: hidden;
 	box-sizing: border-box;
 }
 
+/* Sidebar lateral */
 .sidebar {
 	width: 280px;
 	background-color: #e0e0e0;
 	padding: 1em;
 	box-sizing: border-box;
 	flex-shrink: 0;
-	overflow-y: auto;
 }
 
+.sidebar .search {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+
+/* Força expansão da listagem para o restante da tela */
 .search-by-tags-wrapper .app-content-list {
+	max-width: none !important;
+	width: 100%;
 	flex-grow: 1;
 	flex-shrink: 1;
 	flex-basis: 0;
@@ -25,27 +34,125 @@
 	background-color: white;
 	display: flex;
 	flex-direction: column;
-	box-sizing: border-box;
-
-	/* Scroll vertical garantido */
 	overflow-y: auto;
 	overflow-x: hidden;
+	box-sizing: border-box;
 }
 
-/* --- ÁREA DE RESULTADOS --- */
 #tag-results {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 	gap: 1rem;
 	padding: 1rem;
 	box-sizing: border-box;
 	width: 100%;
-	overflow: visible;
 }
 
-/* --- ESTILOS DO CARD --- */
+
+/* Demais estilos mantidos */
+.files-list .file {
+	width: 140px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	word-break: break-word;
+}
+
+/* .thumbnail {
+	width: 120px;
+	height: 120px;
+	object-fit: cover;
+	border-radius: 6px;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+	background-color: #fff;
+	margin-bottom: 6px;
+} */
+
+.nametext {
+	font-size: 13px;
+	color: var(--color-text);
+}
+
+.search {
+	width: 100%;
+	padding: 8px;
+	border-radius: 6px;
+	border: 1px solid var(--color-border);
+	background-color: var(--color-background-light);
+	color: var(--color-text);
+	font-size: 14px;
+}
+
+.tag-folders {
+	margin-top: 1rem;
+	border-top: 1px solid #ccc;
+	padding-top: 1rem;
+}
+
+.app-navigation-entry {
+	background-color: #fff;
+	padding: 6px 10px;
+	margin-bottom: 8px;
+	border-radius: 4px;
+	box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+	font-weight: 500;
+	cursor: default;
+}
+
+.tag-folders {
+	margin-top: 1rem;
+	border-top: 1px solid #ccc;
+	padding-top: 1rem;
+}
+
+.tag-link {
+	display: flex;
+	align-items: center;
+	padding: 6px 10px;
+	margin-bottom: 8px;
+	border-radius: 4px;
+	background-color: #fff;
+	box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+	text-decoration: none;
+	color: var(--color-text);
+	font-weight: 500;
+	transition: background-color 0.2s ease;
+}
+
+.tag-link:hover {
+	background-color: #f0f0f0;
+}
+
+.tag-link .icon-tag {
+	margin-right: 8px;
+}
+
+/* .filename {
+	font-weight: bold;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+} */
+
+.filedate {
+	font-size: 0.85em;
+	color: #666;
+}
+
+
+
+
+
+#tag-results {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	justify-content: center;
+}
+
 .file-card {
-	width: 100%; /* Controlado pela grid */
+	width: 180px;
 	padding: 12px;
 	background-color: #f7f7f7;
 	border-radius: 10px;
@@ -85,44 +192,4 @@
 .filedate {
 	font-size: 0.85em;
 	color: #555;
-}
-
-/* --- SIDEBAR (Buscador e tags) --- */
-.sidebar .search {
-	width: 100% !important;
-	box-sizing: border-box;
-	padding: 8px;
-	border-radius: 6px;
-	border: 1px solid var(--color-border);
-	background-color: var(--color-background-light);
-	color: var(--color-text);
-	font-size: 14px;
-}
-
-.tag-folders {
-	margin-top: 1rem;
-	border-top: 1px solid #ccc;
-	padding-top: 1rem;
-}
-
-.tag-link {
-	display: flex;
-	align-items: center;
-	padding: 6px 10px;
-	margin-bottom: 8px;
-	border-radius: 4px;
-	background-color: #fff;
-	box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-	text-decoration: none;
-	color: var(--color-text);
-	font-weight: 500;
-	transition: background-color 0.2s ease;
-}
-
-.tag-link:hover {
-	background-color: #f0f0f0;
-}
-
-.tag-link .icon-tag {
-	margin-right: 8px;
 }
