@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 			});
 		}
 		await loadResults(val);
-		renderTagFolders(val);
+		await renderTagFolders(val);
 		history.replaceState(null, '', OC.generateUrl('/apps/search_by_tags/') + '?query=' + encodeURIComponent(val));
 	});
 
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 	if (query) {
 		input.value = query;
 		await loadResults(val);
-		renderTagFolders(val);
+		await renderTagFolders(val);
 	}
 
 	async function fetchTags(filter) {
