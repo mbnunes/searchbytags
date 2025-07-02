@@ -193,3 +193,17 @@
 	font-size: 0.85em;
 	color: #555;
 }
+
+.search-by-tags-wrapper .app-content-list {
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+#tag-results {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: 1rem;
+	padding: 1rem;
+	box-sizing: border-box;
+	width: 100%;
+}
