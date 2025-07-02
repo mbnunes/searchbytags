@@ -36,7 +36,7 @@ class Application extends App implements IBootstrap {
                 'order' => 70,
                 'href' => $urlGenerator->getAbsoluteURL('/index.php/apps/' . self::APP_ID . '/'),
                 'icon' => $urlGenerator->imagePath(self::APP_ID, 'app.svg'),
-                'name' => $l10n->t('Search By Tags'),
+                'name' => $l10n->t('Tags'),
                 'active' => false
             ];
         });

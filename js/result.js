@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 			});
 		}
 		await loadResults(val);
+		renderTagFolders(val);
 		history.replaceState(null, '', OC.generateUrl('/apps/search_by_tags/') + '?query=' + encodeURIComponent(val));
 	});
 
@@ -22,7 +23,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 	const query = urlParams.get('query');
 	if (query) {
 		input.value = query;
-		await loadResults(query);
+		await loadResults(val);
+		renderTagFolders(val);
 	}
 
 	async function fetchTags(filter) {
@@ -97,5 +99,21 @@ document.addEventListener('DOMContentLoaded', async function () {
 		} catch (err) {
 			console.error('Erro ao carregar arquivos:', err);
 		}
+	}
+
+	function renderTagFolders(query) {
+		const tagFoldersContainer = document.getElementById('tag-folders');
+		tagFoldersContainer.innerHTML = ''; // Limpa conteúdo anterior
+
+		if (!query) return;
+
+		const tagParts = query.split(/\s+(AND|OR)\s+/i).filter(t => t !== 'AND' && t !== 'OR');
+
+		tagParts.forEach(tag => {
+			const tagDiv = document.createElement('div');
+			tagDiv.className = 'app-navigation-entry';
+			tagDiv.textContent = tag;
+			tagFoldersContainer.appendChild(tagDiv);
+		});
 	}
 });
