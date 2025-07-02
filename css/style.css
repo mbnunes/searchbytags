@@ -16,9 +16,15 @@
 	flex-shrink: 0;
 }
 
+.sidebar .search {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+
 /* Força expansão da listagem para o restante da tela */
 .search-by-tags-wrapper .app-content-list {
-	max-width: none !important;  /* ESSENCIAL contra apps.scss */
+	max-width: none !important;
 	width: 100%;
 	flex-grow: 1;
 	flex-shrink: 1;
@@ -26,13 +32,22 @@
 	min-width: 0;
 
 	background-color: white;
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+	overflow-x: hidden;
+	box-sizing: border-box;
+}
+
+#tag-results {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 	gap: 1rem;
 	padding: 1rem;
 	box-sizing: border-box;
-	overflow-y: auto;
+	width: 100%;
 }
+
 
 /* Demais estilos mantidos */
 .files-list .file {
@@ -137,7 +152,7 @@
 }
 
 .file-card {
-	width: 180px;
+	width: 100%;
 	padding: 12px;
 	background-color: #f7f7f7;
 	border-radius: 10px;
