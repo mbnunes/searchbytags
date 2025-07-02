@@ -112,3 +112,15 @@
 .tag-link .icon-tag {
 	margin-right: 8px;
 }
+
+.filename {
+	font-weight: bold;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.filedate {
+	font-size: 0.85em;
+	color: #666;
+}
