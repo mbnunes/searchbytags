@@ -101,32 +101,55 @@ document.addEventListener('DOMContentLoaded', async function () {
 		}
 	}
 
-	function renderTagFolders(query) {
-	const tagFoldersContainer = document.getElementById('tag-folders');
-	tagFoldersContainer.innerHTML = ''; // Limpa conteúdo anterior
+	async function renderTagFolders(query) {
+		const tagFoldersContainer = document.getElementById('tag-folders');
+		tagFoldersContainer.innerHTML = ''; // Limpa conteúdo anterior
 
-	if (!query) return;
+		if (!query) return;
 
-	const operators = ['and', 'or'];
-	const tagParts = query.split(/\s+/).filter(t => !operators.includes(t.toLowerCase()));
+		// Extrai as tags sem operadores lógicos
+		const operators = ['and', 'or'];
+		const tagParts = query
+			.split(/\s+/)
+			.map(t => t.trim())
+			.filter(t => t && !operators.includes(t.toLowerCase()));
 
-	tagParts.forEach(tag => {
-		const tagLink = document.createElement('a');
-		tagLink.className = 'tag-link';
-		tagLink.href = OC.generateUrl(`/apps/files/?dir=/tags/${encodeURIComponent(tag)}`);
+		if (tagParts.length === 0) return;
 
-		// Ícone (você pode substituir por SVG ou tag <img> se quiser)
-		const icon = document.createElement('span');
-		icon.className = 'icon-tag';
-		icon.textContent = '🏷️'; // ou use um ícone do Nextcloud se preferir
+		// Busca todas as tags disponíveis via API
+		let allTags = [];
+		try {
+			const response = await fetch(OC.generateUrl('/ocs/v2.php/apps/files/api/v1/tags?format=json'), {
+				headers: { 'OCS-APIREQUEST': 'true' }
+			});
+			const data = await response.json();
+			allTags = data.ocs.data;
+		} catch (err) {
+			console.error('Erro ao buscar todas as tags:', err);
+			return;
+		}
 
-		const label = document.createElement('span');
-		label.textContent = tag;
+		// Mapeia tag buscada para tag real com ID
+		tagParts.forEach(inputTag => {
+			const match = allTags.find(tag => tag.name.toLowerCase() === inputTag.toLowerCase());
+			if (match) {
+				const tagLink = document.createElement('a');
+				tagLink.className = 'tag-link';
+				tagLink.href = OC.generateUrl(`/apps/files/tags/${match.id}?dir=/${match.id}`);
 
-		tagLink.appendChild(icon);
-		tagLink.appendChild(label);
-		tagFoldersContainer.appendChild(tagLink);
-	});
-}
+				const icon = document.createElement('span');
+				icon.className = 'icon-tag';
+				icon.textContent = '🏷️';
+
+				const label = document.createElement('span');
+				label.textContent = match.name;
+
+				tagLink.appendChild(icon);
+				tagLink.appendChild(label);
+				tagFoldersContainer.appendChild(tagLink);
+			}
+		});
+	}
+
 
 });
