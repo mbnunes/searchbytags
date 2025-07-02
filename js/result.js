@@ -127,10 +127,10 @@ document.addEventListener('DOMContentLoaded', async function () {
 		let allTags = [];
 		try {
 			const response = await fetch(OC.generateUrl('/ocs/v2.php/apps/files/api/v1/tags?format=json'), {
-				headers: { 'OCS-APIREQUEST': 'true' }
+				headers: { 'OCS-APIREQUEST': 'true' },
+				credentials: 'include'  // ESSENCIAL para enviar cookies de sessão
 			});
 			const data = await response.json();
-			console.log(data);
 			allTags = data.ocs.data;
 		} catch (err) {
 			console.error('Erro ao buscar todas as tags:', err);
