@@ -88,10 +88,11 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 			data.files.forEach((file, index) => {
 				const item = document.createElement('div');
-				item.className = 'item';
+				item.className = 'file-card'; // NOVO: container estilizado
 
 				const link = document.createElement('a');
 				link.href = '#';
+				link.className = 'file-link';
 				link.addEventListener('click', (e) => {
 					e.preventDefault();
 					if (OCA?.Viewer?.open) {
@@ -106,11 +107,22 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 				const name = document.createElement('div');
 				name.className = 'filename';
-				name.textContent = file.name;
+				name.title = file.name;
+				name.textContent = shortenFilename(file.name);
 
+				const date = document.createElement('div');
+				date.className = 'filedate';
+				date.textContent = formatDate(file.mtime);
+
+				// Adiciona tudo ao link
 				link.appendChild(img);
 				link.appendChild(name);
+				link.appendChild(date);
+
+				// Adiciona ao card
 				item.appendChild(link);
+
+				// Adiciona à grid principal
 				tagResults.appendChild(item);
 			});
 
@@ -159,3 +171,29 @@ document.addEventListener('DOMContentLoaded', async function () {
 		});
 	}
 });
+
+
+function shortenFilename(filename, maxLength = 30) {
+	if (filename.length <= maxLength) {
+		return filename;
+	}
+
+	const extIndex = filename.lastIndexOf('.');
+	const namePart = filename.substring(0, extIndex);
+	const extPart = filename.substring(extIndex);
+
+	const keep = Math.floor((maxLength - extPart.length - 3) / 2);
+	return namePart.substring(0, keep) + '...' + namePart.substring(namePart.length - keep) + extPart;
+}
+
+function formatDate(timestamp) {
+	if (!timestamp) return '';
+	const date = new Date(timestamp * 1000);
+	return date.toLocaleString('pt-BR', {
+		day: '2-digit',
+		month: '2-digit',
+		year: 'numeric',
+		hour: '2-digit',
+		minute: '2-digit'
+	});
+}

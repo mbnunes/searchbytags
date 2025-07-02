@@ -44,7 +44,7 @@
 	word-break: break-word;
 }
 
-.thumbnail {
+/* .thumbnail {
 	width: 120px;
 	height: 120px;
 	object-fit: cover;
@@ -52,7 +52,7 @@
 	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 	background-color: #fff;
 	margin-bottom: 6px;
-}
+} */
 
 .nametext {
 	font-size: 13px;
@@ -113,14 +113,68 @@
 	margin-right: 8px;
 }
 
-.filename {
+/* .filename {
 	font-weight: bold;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-}
+} */
 
 .filedate {
 	font-size: 0.85em;
 	color: #666;
+}
+
+
+
+
+
+#tag-results {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	justify-content: center;
+}
+
+.file-card {
+	width: 180px;
+	padding: 12px;
+	background-color: #f7f7f7;
+	border-radius: 10px;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	transition: background-color 0.2s ease;
+	text-align: left;
+}
+
+.file-card:hover {
+	background-color: #e0e0e0;
+}
+
+.file-link {
+	text-decoration: none;
+	color: inherit;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+.thumbnail {
+	width: 100%;
+	height: auto;
+	border-radius: 6px;
+	margin-bottom: 8px;
+}
+
+.filename {
+	font-weight: bold;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: 100%;
+	margin-bottom: 4px;
+}
+
+.filedate {
+	font-size: 0.85em;
+	color: #555;
 }
