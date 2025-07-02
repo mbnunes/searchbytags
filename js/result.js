@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 	async function renderTagFolders(query) {
 		const tagFoldersContainer = document.getElementById('tag-folders');
 		tagFoldersContainer.innerHTML = ''; // Limpa conteúdo anterior
-
+		console.error('testes', query);
 		if (!query) return;
 
 		// Extrai as tags sem operadores lógicos
@@ -135,6 +135,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 			console.error('Erro ao buscar todas as tags:', err);
 			return;
 		}
+
+		console.log(allTags);
 
 		// Mapeia tag buscada para tag real com ID
 		tagParts.forEach(inputTag => {
