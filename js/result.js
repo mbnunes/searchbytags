@@ -3,6 +3,49 @@ document.addEventListener('DOMContentLoaded', async function () {
 	const tagResults = document.getElementById('tag-results');
 
 	let debounceTimeout;
+	let currentPage = 1;
+	let perPage = 20;
+
+	// Cria seletor de quantidade por página
+	const perPageSelector = document.createElement('select');
+	perPageSelector.innerHTML = `
+		<option value="10">10</option>
+		<option value="20" selected>20</option>
+		<option value="50">50</option>
+	`;
+	perPageSelector.addEventListener('change', () => {
+		perPage = parseInt(perPageSelector.value);
+		currentPage = 1;
+		loadResults(input.value.trim());
+	});
+	document.querySelector('.sidebar')?.appendChild(perPageSelector);
+
+	// Paginação
+	const paginationControls = document.createElement('div');
+	paginationControls.style.marginTop = '1rem';
+	paginationControls.style.display = 'flex';
+	paginationControls.style.justifyContent = 'center';
+	paginationControls.style.gap = '1rem';
+
+	const prevButton = document.createElement('button');
+	prevButton.textContent = '← Anterior';
+	prevButton.onclick = () => {
+		if (currentPage > 1) {
+			currentPage--;
+			loadResults(input.value.trim());
+		}
+	};
+
+	const nextButton = document.createElement('button');
+	nextButton.textContent = 'Próximo →';
+	nextButton.onclick = () => {
+		currentPage++;
+		loadResults(input.value.trim());
+	};
+
+	paginationControls.appendChild(prevButton);
+	paginationControls.appendChild(nextButton);
+	document.querySelector('.sidebar')?.appendChild(paginationControls);
 
 	input.addEventListener('input', function () {
 		clearTimeout(debounceTimeout);
@@ -19,12 +62,12 @@ document.addEventListener('DOMContentLoaded', async function () {
 					datalist.appendChild(opt);
 				});
 			}
+			currentPage = 1;
 			await loadResults(val);
 			await renderTagFolders(val);
 			history.replaceState(null, '', OC.generateUrl('/apps/search_by_tags/') + '?query=' + encodeURIComponent(val));
-		}, 300); // 300ms de atraso após o último caractere digitado
+		}, 300);
 	});
-
 
 	const urlParams = new URLSearchParams(window.location.search);
 	const query = urlParams.get('query');
@@ -40,7 +83,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 		try {
 			const response = await fetch(OC.generateUrl('/apps/search_by_tags/search/getAllTags'), {
 				headers: { 'OCS-APIREQUEST': 'true' },
-				credentials: 'include' // garante que o cookie de sessão do Nextcloud seja enviado
+				credentials: 'include'
 			});
 
 			const data = await response.json();
@@ -57,7 +100,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 		return allTags;
 	}
 
-
 	async function loadResults(query) {
 		try {
 			const res = await fetch(OC.generateUrl('/apps/search_by_tags/api/search') + '?query=' + encodeURIComponent(query));
@@ -70,25 +112,29 @@ document.addEventListener('DOMContentLoaded', async function () {
 				return;
 			}
 
-			const fileList = [];
+			const fileList = data.files.map(file => ({
+				id: file.id,
+				name: file.name,
+				mime: file.mime || 'image/jpeg',
+				path: file.path + '/' + file.name,
+				size: file.size || 0,
+				etag: file.etag || '',
+				mtime: file.mtime || 0,
+				permissions: 1,
+				type: 'file',
+				directory: file.path
+			}));
 
-			data.files.forEach(file => {
-				fileList.push({
-					id: file.id,
-					name: file.name,
-					mime: file.mime || 'image/jpeg',
-					path: file.path + '/' + file.name,
-					size: file.size || 0,
-					etag: file.etag || '',
-					permissions: 1,
-					type: 'file',
-					directory: file.path
-				});
-			});
+			const start = (currentPage - 1) * perPage;
+			const end = start + perPage;
+			const paginatedFiles = fileList.slice(start, end);
 
-			data.files.forEach((file, index) => {
+			nextButton.disabled = end >= fileList.length;
+			prevButton.disabled = currentPage <= 1;
+
+			paginatedFiles.forEach((file, index) => {
 				const item = document.createElement('div');
-				item.className = 'file-card'; // NOVO: container estilizado
+				item.className = 'file-card';
 
 				const link = document.createElement('a');
 				link.href = '#';
@@ -96,7 +142,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 				link.addEventListener('click', (e) => {
 					e.preventDefault();
 					if (OCA?.Viewer?.open) {
-						OCA.Viewer.open(fileList, index);
+						OCA.Viewer.open(fileList, start + index);
 					}
 				});
 
@@ -114,15 +160,11 @@ document.addEventListener('DOMContentLoaded', async function () {
 				date.className = 'filedate';
 				date.textContent = formatDate(file.mtime);
 
-				// Adiciona tudo ao link
 				link.appendChild(img);
 				link.appendChild(name);
 				link.appendChild(date);
 
-				// Adiciona ao card
 				item.appendChild(link);
-
-				// Adiciona à grid principal
 				tagResults.appendChild(item);
 			});
 
@@ -133,11 +175,10 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 	async function renderTagFolders(query) {
 		const tagFoldersContainer = document.getElementById('tag-folders');
-		tagFoldersContainer.innerHTML = ''; // Limpa conteúdo anterior
+		tagFoldersContainer.innerHTML = '';
 
 		if (!query) return;
 
-		// Extrai as tags sem operadores lógicos
 		const operators = ['and', 'or'];
 		const tagParts = query
 			.split(/\s+/)
@@ -146,10 +187,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 		if (tagParts.length === 0) return;
 
-		// Busca todas as tags disponíveis via sua API personalizada
 		let allTags = await fetchTags();
 
-		// Mapeia tag buscada para tag real com ID
 		tagParts.forEach(inputTag => {
 			const match = allTags.find(tag => tag.name.toLowerCase() === inputTag.toLowerCase());
 			if (match) {
@@ -171,7 +210,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 		});
 	}
 });
-
 
 function shortenFilename(filename, maxLength = 30) {
 	if (filename.length <= maxLength) {
