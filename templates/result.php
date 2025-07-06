@@ -2,6 +2,10 @@
 script('search_by_tags', 'result');
 style('files', 'merged'); // Usa o estilo do app files
 style('search_by_tags', 'style');
+// Adicione estas linhas para garantir que o Viewer seja carregado
+
+\OC_Util::addScript('viewer', 'viewer');
+\OC_Util::addStyle('viewer', 'viewer');
 ?>
 
 <div class="search-by-tags-wrapper">

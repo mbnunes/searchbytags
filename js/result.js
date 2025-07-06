@@ -243,52 +243,78 @@ document.addEventListener('DOMContentLoaded', async function () {
 			link.href = '#';
 			link.className = 'file-link';
 			link.addEventListener('click', (e) => {
-				e.preventDefault();
-				
-				// Debug - vamos ver o que está vindo
-				console.log('File info:', {
-					name: file.name,
-					mime: file.mime,
-					mimetype: file.mimetype,
-					isImage: file.isImage
-				});
-				
-				// Pega o mimetype de forma consistente
-				const mimeType = file.mimetype || file.mime || '';
-				
-				// Verifica se é imagem
-				const isImage = (mimeType && mimeType.startsWith('image/')) || 
-								file.isImage || 
-								/\.(jpg|jpeg|png|gif|webp|svg|bmp|ico|tiff?)$/i.test(file.name);
-				
-				// Verifica se é vídeo
-				const isVideo = (mimeType && mimeType.startsWith('video/')) || 
-								/\.(mp4|avi|mov|wmv|flv|mkv|webm|m4v|mpg|mpeg|3gp|ogv)$/i.test(file.name);
-				
-				// Para imagens, tenta abrir no Viewer
-				if ((isImage || isVideo) && OCA?.Viewer?.open) {
-					try {
-						console.log('Tentando abrir no Viewer...', isImage ? 'Imagem' : 'Vídeo');
-						OCA.Viewer.open({
-							fileInfo: fileList[index],
-							list: fileList
-						});
-					} catch (err) {
-						console.error('Erro ao abrir Viewer:', err);
-						// Se falhar, usa o fallback
-						openInFiles();
-					}
-				} else {
-					console.log('Abrindo no Files (não é mídia ou Viewer não disponível)');
-					openInFiles();
-				}
-				
-				function openInFiles() {
-					// URL no formato correto sem encoding
-					const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}`;
-					window.location.href = fileUrl;
-				}
-			});
+    e.preventDefault();
+    
+    // Debug - vamos ver o que está vindo
+    console.log('File info:', {
+        name: file.name,
+        mime: file.mime,
+        mimetype: file.mimetype,
+        isImage: file.isImage
+    });
+    
+    // Verifica se o Viewer está disponível
+    console.log('Viewer disponível?', typeof OCA !== 'undefined' && OCA.Viewer && typeof OCA.Viewer.open === 'function');
+    
+    // Pega o mimetype de forma consistente
+    const mimeType = file.mimetype || file.mime || '';
+    
+    // Verifica se é imagem
+    const isImage = (mimeType && mimeType.startsWith('image/')) || 
+                    file.isImage || 
+                    /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico|tiff?)$/i.test(file.name);
+    
+    // Verifica se é vídeo
+    const isVideo = (mimeType && mimeType.startsWith('video/')) || 
+                    /\.(mp4|avi|mov|wmv|flv|mkv|webm|m4v|mpg|mpeg|3gp|ogv)$/i.test(file.name);
+    
+    // Para imagens e vídeos, tenta diferentes métodos
+    if (isImage || isVideo) {
+        // Método 1: Tenta o Viewer.open com a lista completa
+        if (window.OCA && window.OCA.Viewer && window.OCA.Viewer.open) {
+            try {
+                console.log('Tentando Viewer.open com lista...');
+                window.OCA.Viewer.open(fileList[index]);
+                return;
+            } catch (err) {
+                console.error('Erro método 1:', err);
+            }
+        }
+        
+        // Método 2: Tenta abrir com o path direto
+        if (window.OCA && window.OCA.Viewer && window.OCA.Viewer.open) {
+            try {
+                console.log('Tentando Viewer.open com path...');
+                const fullPath = file.path === '/' ? '/' + file.name : file.path + '/' + file.name;
+                window.OCA.Viewer.open(fullPath);
+                return;
+            } catch (err) {
+                console.error('Erro método 2:', err);
+            }
+        }
+        
+        // Método 3: Usa o Files.App se disponível
+        if (window.OCA && window.OCA.Files && window.OCA.Files.App) {
+            try {
+                console.log('Tentando Files.App...');
+                window.OCA.Files.App.fileList.showDetailsView(file.name, 'preview');
+                return;
+            } catch (err) {
+                console.error('Erro método 3:', err);
+            }
+        }
+    }
+    
+    // Fallback final
+    console.log('Usando fallback - abrindo no Files');
+    openInFiles();
+    
+    function openInFiles() {
+        // URL no formato correto sem encoding
+        const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}`;
+        window.location.href = fileUrl;
+    }
+});
 
 			const img = document.createElement('img');
 			img.src = OC.generateUrl(`/core/preview?fileId=${file.id}&x=128&y=128`);
