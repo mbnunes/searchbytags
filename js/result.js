@@ -1,3 +1,5 @@
+OCP.Loader.loadScript('viewer', 'viewer');
+
 document.addEventListener('DOMContentLoaded', async function () {
 	const input = document.getElementById('tag-input');
 	const tagResults = document.getElementById('tag-results');
@@ -217,25 +219,39 @@ document.addEventListener('DOMContentLoaded', async function () {
 			tagResults.setAttribute('data-click-handler', 'true');
 
 			tagResults.addEventListener('click', function (e) {
-				// Procura o link clicado
+
 				const link = e.target.closest('.file-link');
 				if (!link) return;
-
 				e.preventDefault();
+
 				console.log('Click funcionou!');
 
-				// Pega o card pai que contém os dados
 				const card = link.closest('.file-card');
 				const fileId = card.getAttribute('data-file-id');
 				const filePath = card.getAttribute('data-file-path');
+				const fileName = card.getAttribute('data-file-name');
 				const mimeType = card.getAttribute('data-mime-type');
 
 				const isImage = mimeType.startsWith('image/');
 				const isVideo = mimeType.startsWith('video/');
 
 				if (isImage || isVideo) {
-					window.location.href = `${OC.getRootPath()}/apps/files/files/${fileId}?dir=${filePath}&openfile=true`;
+
+					// Abre o viewer diretamente
+					if (OCA.Viewer) {
+						OCA.Viewer.open({
+							fileId: parseInt(fileId),
+							path: filePath + '/' + fileName,
+							list: getFileListForViewer(), // função para criar lista de arquivos
+							canLoop: true
+						});
+					} else {
+						console.error('Viewer não está disponível');
+						// Fallback para o método antigo
+						window.location.href = `${OC.getRootPath()}/apps/files/files/${fileId}?dir=${filePath}&openfile=true`;
+					}
 				} else {
+					// Para outros arquivos, abre normalmente
 					window.location.href = `${OC.getRootPath()}/apps/files/files/${fileId}?dir=${filePath}`;
 				}
 			});
@@ -271,6 +287,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 			// Armazena os dados do arquivo no card
 			item.setAttribute('data-file-id', file.id);
 			item.setAttribute('data-file-path', file.path);
+			item.setAttribute('data-file-name', file.name); // ADICIONE ESTA LINHA
 			item.setAttribute('data-mime-type', file.mimetype || file.mime || '');
 
 			const link = document.createElement('a');
@@ -453,4 +470,24 @@ function formatDate(timestamp) {
 		hour: '2-digit',
 		minute: '2-digit'
 	});
+}
+
+function getFileListForViewer() {
+    // Retorna array com todos os arquivos da página atual que podem ser visualizados
+    const viewableFiles = [];
+    
+    document.querySelectorAll('.file-card').forEach(card => {
+        const mimeType = card.getAttribute('data-mime-type');
+        if (mimeType && (mimeType.startsWith('image/') || mimeType.startsWith('video/'))) {
+            viewableFiles.push({
+                fileId: parseInt(card.getAttribute('data-file-id')),
+                path: card.getAttribute('data-file-path') + '/' + card.getAttribute('data-file-name'),
+                name: card.getAttribute('data-file-name'),
+                mime: mimeType,
+                hasPreview: true
+            });
+        }
+    });
+    
+    return viewableFiles;
 }
