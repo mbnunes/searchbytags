@@ -216,8 +216,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 		const endIndex = startIndex + itemsPerPage;
 		const pageFiles = totalFiles.slice(startIndex, endIndex);
 
-		console.log("CAGADA AQUI");
-
 		// Prepara lista para o viewer - CORREÇÃO AQUI
 		const fileList = [];
 		pageFiles.forEach(file => {
@@ -244,6 +242,9 @@ document.addEventListener('DOMContentLoaded', async function () {
 			const link = document.createElement('a');
 			link.href = '#';
 			link.className = 'file-link';
+
+			console.log("CAGADA AQUI");
+
 			link.addEventListener('click', (e) => {
 				e.preventDefault();
 
