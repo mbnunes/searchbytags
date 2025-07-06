@@ -210,67 +210,122 @@ document.addEventListener('DOMContentLoaded', async function () {
 	}
 
 	function renderPage() {
-		tagResults.innerHTML = '';
+    tagResults.innerHTML = '';
 
-		const startIndex = (currentPage - 1) * itemsPerPage;
-		const endIndex = startIndex + itemsPerPage;
-		const pageFiles = totalFiles.slice(startIndex, endIndex);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageFiles = totalFiles.slice(startIndex, endIndex);
 
-		// Prepara lista para o viewer
-		const fileList = [];
-		pageFiles.forEach(file => {
-			fileList.push({
-				id: file.id,
-				name: file.name,
-				mime: file.mime || 'image/jpeg',
-				path: file.path + '/' + file.name,
-				size: file.size || 0,
-				etag: file.etag || '',
-				permissions: 1,
-				type: 'file',
-				directory: file.path
-			});
-		});
+    // Prepara lista para o viewer
+    const fileList = [];
+    pageFiles.forEach(file => {
+        fileList.push({
+            id: file.id,
+            name: file.name,
+            mime: file.mime || 'image/jpeg',
+            path: file.path + '/' + file.name,
+            size: file.size || 0,
+            etag: file.etag || '',
+            permissions: 1,
+            type: 'file',
+            directory: file.path
+        });
+    });
 
-		pageFiles.forEach((file, index) => {
-			const item = document.createElement('div');
-			item.className = 'file-card';
+    pageFiles.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'file-card';
 
-			const link = document.createElement('a');
-			link.href = '#';
-			link.className = 'file-link';
-			link.addEventListener('click', (e) => {
-				e.preventDefault();
-				if (OCA?.Viewer?.open) {
-					OCA.Viewer.open(fileList, index);
-				}
-			});
+        const link = document.createElement('a');
+        link.href = '#';
+        link.className = 'file-link';
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (OCA?.Viewer?.open) {
+                OCA.Viewer.open(fileList, index);
+            }
+        });
 
-			const img = document.createElement('img');
-			img.src = OC.generateUrl(`/core/preview?fileId=${file.id}&x=128&y=128`);
-			img.alt = file.name;
-			img.className = 'thumbnail';
+        const img = document.createElement('img');
+        img.src = OC.generateUrl(`/core/preview?fileId=${file.id}&x=128&y=128`);
+        img.alt = file.name;
+        img.className = 'thumbnail';
 
-			const name = document.createElement('div');
-			name.className = 'filename';
-			name.title = file.name;
-			name.textContent = shortenFilename(file.name);
+        const name = document.createElement('div');
+        name.className = 'filename';
+        name.title = file.name;
+        name.textContent = shortenFilename(file.name);
 
-			const date = document.createElement('div');
-			date.className = 'filedate';
-			date.textContent = formatDate(file.mtime);
+        const date = document.createElement('div');
+        date.className = 'filedate';
+        date.textContent = formatDate(file.mtime);
 
-			link.appendChild(img);
-			link.appendChild(name);
-			link.appendChild(date);
+        // Criar tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'file-tooltip';
+        
+        // Nome completo do arquivo
+        const tooltipName = document.createElement('div');
+        tooltipName.className = 'tooltip-row';
+        tooltipName.innerHTML = `<span class="tooltip-label">Nome:</span> ${file.name}`;
+        tooltip.appendChild(tooltipName);
 
-			item.appendChild(link);
-			tagResults.appendChild(item);
-		});
+        // Tamanho do arquivo
+        const tooltipSize = document.createElement('div');
+        tooltipSize.className = 'tooltip-row';
+        tooltipSize.innerHTML = `<span class="tooltip-label">Tamanho:</span> ${formatFileSize(file.size)}`;
+        tooltip.appendChild(tooltipSize);
 
-		// Scroll para o topo dos resultados
-		tagResults.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-	}
+        // Data de modificação
+        const tooltipDate = document.createElement('div');
+        tooltipDate.className = 'tooltip-row';
+        tooltipDate.innerHTML = `<span class="tooltip-label">Modificado:</span> ${formatDate(file.mtime)}`;
+        tooltip.appendChild(tooltipDate);
+
+        // Tags associadas
+        if (file.tags && file.tags.length > 0) {
+            const tooltipTags = document.createElement('div');
+            tooltipTags.className = 'tooltip-row';
+            tooltipTags.innerHTML = '<span class="tooltip-label">Tags:</span>';
+            
+            const tagsContainer = document.createElement('div');
+            tagsContainer.className = 'tooltip-tags';
+            
+            file.tags.forEach(tag => {
+                const tagSpan = document.createElement('span');
+                tagSpan.className = 'tooltip-tag';
+                tagSpan.textContent = tag;
+                tagsContainer.appendChild(tagSpan);
+            });
+            
+            tooltipTags.appendChild(tagsContainer);
+            tooltip.appendChild(tooltipTags);
+        }
+
+        link.appendChild(img);
+        link.appendChild(name);
+        link.appendChild(date);
+
+        item.appendChild(link);
+        item.appendChild(tooltip);
+
+        tagResults.appendChild(item);
+    });
+
+    // Scroll para o topo dos resultados
+    tagResults.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Função auxiliar para formatar tamanho de arquivo
+function formatFileSize(bytes) {
+    if (!bytes || bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
 
 	async function renderTagFolders(query) {
 		const tagFoldersContainer = document.getElementById('tag-folders');
