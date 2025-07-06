@@ -245,46 +245,16 @@ document.addEventListener('DOMContentLoaded', async function () {
 			link.addEventListener('click', (e) => {
     e.preventDefault();
     
-    // Debug
-    console.log('File info:', {
-        name: file.name,
-        mime: file.mime,
-        mimetype: file.mimetype,
-        isImage: file.isImage
-    });
-    
     const mimeType = file.mimetype || file.mime || '';
     const isImage = mimeType.startsWith('image/') || file.isImage;
     const isVideo = mimeType.startsWith('video/');
     
-    console.log('É imagem?', isImage);
-    console.log('É vídeo?', isVideo);
-    
-    // Remove a verificação do OCA.Viewer da condição
     if (isImage || isVideo) {
-        console.log('É mídia! Tentando abrir...');
-        
-        // Tenta usar o Viewer se disponível
-        if (window.OCA && window.OCA.Viewer && typeof window.OCA.Viewer.open === 'function') {
-            try {
-                console.log('Viewer disponível, abrindo...');
-                window.OCA.Viewer.open(fileList[index]);
-                return;
-            } catch (err) {
-                console.error('Erro ao usar Viewer:', err);
-            }
-        } else {
-            console.log('Viewer não disponível');
-        }
-        
-        // Se não conseguiu com o Viewer, abre direto
-        openInFiles();
+        // Para mídia, abre o arquivo diretamente com o parâmetro openfile
+        const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}&openfile=true`;
+        window.location.href = fileUrl;
     } else {
-        console.log('Não é mídia, abrindo no Files');
-        openInFiles();
-    }
-    
-    function openInFiles() {
+        // Para outros arquivos, abre normalmente
         const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}`;
         window.location.href = fileUrl;
     }
