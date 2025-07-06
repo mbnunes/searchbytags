@@ -19,13 +19,16 @@
     <navigations>
         <navigation>
             <id>search_by_tags</id>
-            <name>Search By Tags</name>
+            <name>Tags</name>
             <route>search_by_tags.page#index</route>
             <icon>search_by_tags.svg</icon>
             <order>70</order>
         </navigation>
     </navigations>
     <js>
-      <file>js/main.js</file>
-  </js>
+        <file>js/result.js</file>
+    </js>
+    <css>
+        <file>css/result.css</file>
+    </css>
 </info>

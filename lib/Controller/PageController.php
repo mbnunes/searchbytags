@@ -15,6 +15,15 @@ class PageController extends Controller {
      * @NoCSRFRequired
      */
     public function index(): TemplateResponse {
-        return new TemplateResponse('search_by_tags', 'main', []);
+        // Compatibilidade com a rota padrão
+        return $this->viewResult();
+    }
+
+    /**
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     */
+    public function viewResult(): TemplateResponse {
+        return new TemplateResponse('search_by_tags', 'result', []);
     }
 }
