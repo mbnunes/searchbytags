@@ -143,6 +143,8 @@ class SearchController extends Controller {
                             'mtime' => $node->getMTime(),
                             'mime' => $node->getMimeType(),
                             'mimetype' => $node->getMimeType(), // compatibilidade
+                            'isImage' => str_starts_with($node->getMimeType(), 'image/'),
+                            'isVideo' => str_starts_with($node->getMimeType(), 'video/'),
                             'type' => $node->getType() === \OCP\Files\FileInfo::TYPE_FOLDER ? 'folder' : 'file',
                             'etag' => $node->getEtag(),
                             'permissions' => $node->getPermissions(),
