@@ -212,11 +212,43 @@ document.addEventListener('DOMContentLoaded', async function () {
 	function renderPage() {
 		tagResults.innerHTML = '';
 
+		// NOVO BLOCO ADICIONADO - Event delegation para capturar cliques
+		if (!tagResults.dataset.hasClickHandler) {
+			tagResults.dataset.hasClickHandler = 'true';
+			
+			tagResults.addEventListener('click', function(e) {
+				const fileLink = e.target.closest('.file-link');
+				if (!fileLink) return;
+				
+				e.preventDefault();
+				e.stopPropagation();
+				
+				console.log("Click detectado!");
+				
+				// Recupera dados do arquivo
+				const fileCard = fileLink.closest('.file-card');
+				const fileId = fileCard.dataset.fileId;
+				const filePath = fileCard.dataset.filePath;
+				const mimeType = fileCard.dataset.mimeType;
+				const isImage = mimeType.startsWith('image/');
+				const isVideo = mimeType.startsWith('video/');
+				
+				if (isImage || isVideo) {
+					const fileUrl = `${OC.getRootPath()}/apps/files/files/${fileId}?dir=${filePath}&openfile=true`;
+					window.location.href = fileUrl;
+				} else {
+					const fileUrl = `${OC.getRootPath()}/apps/files/files/${fileId}?dir=${filePath}`;
+					window.location.href = fileUrl;
+				}
+			});
+		}
+		// FIM DO NOVO BLOCO
+
 		const startIndex = (currentPage - 1) * itemsPerPage;
 		const endIndex = startIndex + itemsPerPage;
 		const pageFiles = totalFiles.slice(startIndex, endIndex);
 
-		// Prepara lista para o viewer - CORREÇÃO AQUI
+		// Prepara lista para o viewer
 		const fileList = [];
 		pageFiles.forEach(file => {
 			fileList.push({
@@ -227,7 +259,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 				path: file.path === '/' ? '/' + file.name : file.path + '/' + file.name,
 				size: file.size || 0,
 				etag: file.etag || '',
-				permissions: file.permissions || 31, // permissões padrão
+				permissions: file.permissions || 31,
 				type: file.type || 'file',
 				hasPreview: true,
 				isImage: file.isImage || (file.mimetype && file.mimetype.startsWith('image/')),
@@ -239,33 +271,16 @@ document.addEventListener('DOMContentLoaded', async function () {
 			const item = document.createElement('div');
 			item.className = 'file-card';
 
+			// NOVO - Armazena dados necessários no elemento
+			item.dataset.fileId = file.id;
+			item.dataset.filePath = file.path;
+			item.dataset.mimeType = file.mimetype || file.mime || '';
+
 			const link = document.createElement('a');
 			link.href = '#';
 			link.className = 'file-link';
+			// REMOVIDO - O addEventListener individual foi removido daqui
 
-// Adiciona um log para confirmar que o elemento foi criado
-console.log('Link criado:', link);
-
-link.addEventListener('click', (e) => {
-    console.log("ENTROU NO CLICK!!!!");
-    e.preventDefault();
-    e.stopPropagation(); // Previne propagação
-    
-    const mimeType = file.mimetype || file.mime || '';
-    const isImage = mimeType.startsWith('image/') || file.isImage;
-    const isVideo = mimeType.startsWith('video/');
-
-    if (isImage || isVideo) {
-        const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}&openfile=true`;
-        window.location.href = fileUrl;
-    } else {
-        const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}`;
-        window.location.href = fileUrl;
-    }
-});
-
-// Adiciona um log para confirmar que o listener foi adicionado
-console.log('Event listener adicionado ao link');
 			const img = document.createElement('img');
 			img.src = OC.generateUrl(`/core/preview?fileId=${file.id}&x=128&y=128`);
 			img.alt = file.name;
@@ -380,7 +395,8 @@ console.log('Event listener adicionado ao link');
 		return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 	}
 
-	async function renderTagFolders(query) {
+	
+		async function renderTagFolders(query) {
 		const tagFoldersContainer = document.getElementById('tag-folders');
 		tagFoldersContainer.innerHTML = '';
 
