@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 	paginationControls.style.marginTop = '1rem';
 	paginationControls.style.display = 'flex';
 	paginationControls.style.justifyContent = 'center';
+	paginationControls.style.alignItems = 'center';
 	paginationControls.style.gap = '1rem';
 
 	const prevButton = document.createElement('button');
@@ -36,6 +37,9 @@ document.addEventListener('DOMContentLoaded', async function () {
 		}
 	};
 
+	const pageIndicator = document.createElement('span');
+	pageIndicator.textContent = `Página ${currentPage}`;
+
 	const nextButton = document.createElement('button');
 	nextButton.textContent = 'Próximo →';
 	nextButton.onclick = () => {
@@ -44,6 +48,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 	};
 
 	paginationControls.appendChild(prevButton);
+	paginationControls.appendChild(pageIndicator);
 	paginationControls.appendChild(nextButton);
 	document.querySelector('.sidebar')?.appendChild(paginationControls);
 
@@ -131,6 +136,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 			nextButton.disabled = end >= fileList.length;
 			prevButton.disabled = currentPage <= 1;
+			pageIndicator.textContent = `Página ${currentPage}`;
 
 			paginatedFiles.forEach((file, index) => {
 				const item = document.createElement('div');
