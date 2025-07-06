@@ -244,30 +244,31 @@ document.addEventListener('DOMContentLoaded', async function () {
 			link.className = 'file-link';
 			link.addEventListener('click', (e) => {
 				e.preventDefault();
-
-				// Para vídeos, usa o player de vídeo
-				if (file.mimetype && file.mimetype.startsWith('video/')) {
-					// Abre diretamente o arquivo
-					const filePath = file.path === '/' ? '/' + file.name : file.path + '/' + file.name;
-					window.OC.Files.App.fileList.showFile(file.name, {
-						fileId: file.id,
-						dir: file.path
-					});
-				}
-				// Para imagens e outros arquivos, usa o Viewer
-				else if (OCA?.Viewer?.open) {
+				
+				// Para o Viewer do Nextcloud, precisamos usar o método correto
+				if (OCA?.Viewer?.open) {
+					// O Viewer espera o fileList no formato correto
 					OCA.Viewer.open({
-						path: file.path === '/' ? '/' + file.name : file.path + '/' + file.name,
-						list: fileList,
-						canLoop: true
+						fileInfo: {
+							id: file.id,
+							name: file.name,
+							mimetype: file.mimetype || file.mime,
+							size: file.size,
+							etag: file.etag,
+							permissions: file.permissions || 31,
+							hasPreview: true
+						},
+						path: file.path + '/' + file.name // Path sem encoding
 					});
-				}
-				// Fallback - abre o arquivo no Files
+				} 
+				// Fallback - abre o arquivo no Files sem encoding duplo
 				else {
-					window.location.href = OC.generateUrl('/apps/files/?dir={dir}&openfile={fileId}', {
-						dir: encodeURIComponent(file.path),
-						fileId: file.id
+					// Usa o path direto sem encoding adicional
+					const params = new URLSearchParams({
+						dir: file.path,
+						openfile: file.id
 					});
+					window.location.href = OC.generateUrl('/apps/files/files?' + params.toString());
 				}
 			});
 

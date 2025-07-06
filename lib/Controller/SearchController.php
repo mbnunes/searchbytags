@@ -149,7 +149,7 @@ class SearchController extends Controller {
                             'owner' => $node->getOwner() ? $node->getOwner()->getUID() : $this->userId,
                             'url' => $this->urlGenerator->linkToRoute('files.view.index', [
                                 'dir' => dirname($relativePath),
-                                'scrollto' => $node->getName()
+                                'openfile' => $node->getId()
                             ])
                         ];
 
