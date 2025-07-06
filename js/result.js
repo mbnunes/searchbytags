@@ -67,127 +67,123 @@ document.addEventListener('DOMContentLoaded', async function () {
 	}
 
 	async function loadResults(query) {
-    try {
-        console.log('Carregando resultados para:', query); // Debug
-        
-        const res = await fetch(OC.generateUrl('/apps/search_by_tags/api/search') + '?query=' + encodeURIComponent(query));
-        const data = await res.json();
+		try {
+			console.log('Carregando resultados para:', query); // Debug
 
-        tagResults.innerHTML = '';
+			const res = await fetch(OC.generateUrl('/apps/search_by_tags/api/search') + '?query=' + encodeURIComponent(query));
+			const data = await res.json();
 
-        if (!data.files || data.files.length === 0) {
-            tagResults.innerHTML = '<div class="item">Nenhum arquivo encontrado.</div>';
-            return;
-        }
+			tagResults.innerHTML = '';
 
-        // Armazena todos os arquivos
-        totalFiles = data.files;
-        console.log('Total de arquivos encontrados:', totalFiles.length); // Debug
+			if (!data.files || data.files.length === 0) {
+				tagResults.innerHTML = '<div class="item">Nenhum arquivo encontrado.</div>';
+				return;
+			}
 
-        // Cria controles de paginação
-        createPaginationControls();
+			// Armazena todos os arquivos
+			totalFiles = data.files;
+			console.log('Total de arquivos encontrados:', totalFiles.length); // Debug
 
-        // Renderiza apenas os arquivos da página atual
-        renderPage();
+			// Cria controles de paginação
+			createPaginationControls();
 
-    } catch (err) {
-        console.error('Erro ao carregar arquivos:', err);
-    }
-}
+			// Renderiza apenas os arquivos da página atual
+			renderPage();
+
+		} catch (err) {
+			console.error('Erro ao carregar arquivos:', err);
+		}
+	}
 
 	function createPaginationControls() {
-		// Remove controles antigos se existirem
-		const existingControls = document.querySelector('.pagination-controls');
-		if (existingControls) {
-			existingControls.remove();
-		}
+    // Remove controles antigos se existirem
+    const existingControls = document.querySelector('.pagination-controls');
+    if (existingControls) {
+        existingControls.remove();
+    }
 
-		const controls = document.createElement('div');
-		controls.className = 'pagination-controls';
+    const controls = document.createElement('div');
+    controls.className = 'pagination-controls';
 
-		// Seletor de quantidade por página
-		const perPageContainer = document.createElement('div');
-		perPageContainer.className = 'per-page-container';
+    // Seletor de quantidade por página
+    const perPageContainer = document.createElement('div');
+    perPageContainer.className = 'per-page-container';
+    
+    const perPageLabel = document.createElement('label');
+    perPageLabel.textContent = 'Itens por página: ';
+    perPageLabel.setAttribute('for', 'items-per-page');
+    
+    const perPageSelect = document.createElement('select');
+    perPageSelect.id = 'items-per-page';
+    perPageSelect.className = 'per-page-select';
+    
+    [10, 20, 50, 100].forEach(num => {
+        const option = document.createElement('option');
+        option.value = num;
+        option.textContent = num;
+        if (num === itemsPerPage) option.selected = true;
+        perPageSelect.appendChild(option);
+    });
+    
+    perPageSelect.addEventListener('change', (e) => {
+        itemsPerPage = parseInt(e.target.value);
+        currentPage = 1;
+        renderPage();
+        updatePaginationButtons();
+    });
+    
+    perPageContainer.appendChild(perPageLabel);
+    perPageContainer.appendChild(perPageSelect);
 
-		const perPageLabel = document.createElement('label');
-		perPageLabel.textContent = 'Itens por página: ';
-		perPageLabel.setAttribute('for', 'items-per-page');
+    // Container dos botões de navegação
+    const navContainer = document.createElement('div');
+    navContainer.className = 'pagination-nav';
 
-		const perPageSelect = document.createElement('select');
-		perPageSelect.id = 'items-per-page';
-		perPageSelect.className = 'per-page-select';
+    // Botão anterior
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'pagination-btn prev-btn';
+    prevBtn.textContent = '← Anterior';
+    prevBtn.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderPage();
+            updatePaginationButtons();
+        }
+    };
 
-		[10, 20, 50, 100].forEach(num => {
-			const option = document.createElement('option');
-			option.value = num;
-			option.textContent = num;
-			if (num === itemsPerPage) option.selected = true;
-			perPageSelect.appendChild(option);
-		});
+    // Informação da página
+    const pageInfo = document.createElement('span');
+    pageInfo.className = 'page-info';
+    updatePageInfo(pageInfo);
 
-		perPageSelect.addEventListener('change', (e) => {
-			itemsPerPage = parseInt(e.target.value);
-			currentPage = 1;
-			renderPage();
-			updatePaginationButtons();
-		});
+    // Botão próximo
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'pagination-btn next-btn';
+    nextBtn.textContent = 'Próximo →';
+    nextBtn.onclick = () => {
+        const totalPages = Math.ceil(totalFiles.length / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderPage();
+            updatePaginationButtons();
+        }
+    };
 
-		perPageContainer.appendChild(perPageLabel);
-		perPageContainer.appendChild(perPageSelect);
+    navContainer.appendChild(prevBtn);
+    navContainer.appendChild(pageInfo);
+    navContainer.appendChild(nextBtn);
 
-		// Container dos botões de navegação
-		const navContainer = document.createElement('div');
-		navContainer.className = 'pagination-nav';
+    controls.appendChild(perPageContainer);
+    controls.appendChild(navContainer);
 
-		// Botão anterior
-		const prevBtn = document.createElement('button');
-		prevBtn.className = 'pagination-btn prev-btn';
-		prevBtn.textContent = '← Anterior';
-		prevBtn.onclick = () => {
-			if (currentPage > 1) {
-				currentPage--;
-				renderPage();
-				updatePaginationButtons();
-			}
-		};
+    // Insere no wrapper específico
+    const wrapper = document.querySelector('.pagination-controls-wrapper');
+    if (wrapper) {
+        wrapper.appendChild(controls);
+    }
 
-		// Informação da página
-		const pageInfo = document.createElement('span');
-		pageInfo.className = 'page-info';
-		updatePageInfo(pageInfo);
-
-		// Botão próximo
-		const nextBtn = document.createElement('button');
-		nextBtn.className = 'pagination-btn next-btn';
-		nextBtn.textContent = 'Próximo →';
-		nextBtn.onclick = () => {
-			const totalPages = Math.ceil(totalFiles.length / itemsPerPage);
-			if (currentPage < totalPages) {
-				currentPage++;
-				renderPage();
-				updatePaginationButtons();
-			}
-		};
-
-		navContainer.appendChild(prevBtn);
-		navContainer.appendChild(pageInfo);
-		navContainer.appendChild(nextBtn);
-
-		controls.appendChild(perPageContainer);
-		controls.appendChild(navContainer);
-
-		// MUDANÇA AQUI: Encontra o container correto
-		const mainContent = document.querySelector('.main-content');
-		if (mainContent) {
-			// Insere como primeiro filho do main-content
-			mainContent.insertBefore(controls, mainContent.firstChild);
-		} else {
-			// Fallback: se não encontrar main-content, insere antes do tagResults
-			tagResults.parentNode.insertBefore(controls, tagResults);
-		}
-
-		updatePaginationButtons();
-	}
+    updatePaginationButtons();
+}
 
 	function updatePageInfo(pageInfo) {
 		if (!pageInfo) {
