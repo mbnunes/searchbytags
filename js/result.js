@@ -242,9 +242,14 @@ document.addEventListener('DOMContentLoaded', async function () {
 			const link = document.createElement('a');
 			link.href = '#';
 			link.className = 'file-link';
-			link.onclick = function(e) {
-    console.log("CLICK via onclick!!!!");
+
+// Adiciona um log para confirmar que o elemento foi criado
+console.log('Link criado:', link);
+
+link.addEventListener('click', (e) => {
+    console.log("ENTROU NO CLICK!!!!");
     e.preventDefault();
+    e.stopPropagation(); // Previne propagação
     
     const mimeType = file.mimetype || file.mime || '';
     const isImage = mimeType.startsWith('image/') || file.isImage;
@@ -257,9 +262,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}`;
         window.location.href = fileUrl;
     }
-    
-    return false;
-};
+});
+
+// Adiciona um log para confirmar que o listener foi adicionado
+console.log('Event listener adicionado ao link');
 			const img = document.createElement('img');
 			img.src = OC.generateUrl(`/core/preview?fileId=${file.id}&x=128&y=128`);
 			img.alt = file.name;
