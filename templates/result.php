@@ -8,13 +8,17 @@ style('search_by_tags', 'style');
 	<div class="sidebar">
 		<h2>Busca por Tags</h2>
 		<input type="text" id="tag-input" list="tag-suggestions" placeholder="Digite uma tag..." />
-<datalist id="tag-suggestions"></datalist>
+		<datalist id="tag-suggestions"></datalist>
 		<div id="tag-folders" class="tag-folders">
-		<!-- As pastas das tags serão inseridas aqui -->
+			<!-- As pastas das tags serão inseridas aqui -->
 		</div>
 	</div>
 
-	<div class="app-content-list" id="tag-results">
-		<!-- Resultados aqui -->
+	<div class="main-content">
+		<!-- Container para controles de paginação será inserido aqui via JavaScript -->
+		
+		<div class="app-content-list" id="tag-results">
+			<!-- Resultados aqui -->
+		</div>
 	</div>
 </div>
