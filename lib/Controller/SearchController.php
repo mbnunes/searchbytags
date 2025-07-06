@@ -65,107 +65,143 @@ class SearchController extends Controller {
      * @NoAdminRequired
      */
     public function searchByTag(): JSONResponse {
-    $query = $this->request->getParam('query', '');
-    $this->logger->info('Tags Search: Query: ' . $query);
+        $query = $this->request->getParam('query', '');
+        $this->logger->info('Tags Search: Query: ' . $query);
 
-    if (empty($query)) {
-        return new JSONResponse(['files' => []]);
-    }
-
-    try {
-        // Parse da query
-        $parsedQuery = $this->parseSearchQuery($query);
-        $this->logger->info('Tags Search: Parsed query: ' . json_encode($parsedQuery));
-
-        // Pega todas as tags disponíveis para o usuário
-        $allTags = $this->tagManager->getAllTags(true);
-
-        // Mapeia nomes de tags para IDs (com lowercase para evitar problemas de case)
-        $tagNameToId = [];
-        foreach ($allTags as $tag) {
-            $tagNameToId[strtolower($tag->getName())] = $tag->getId();
-        }
-
-        // Ajusta os nomes das tags da query parseada para lowercase para casar com o map
-        foreach ($parsedQuery['groups'] as &$group) {
-            foreach ($group['tags'] as &$tagName) {
-                $tagName = strtolower(trim($tagName));
-            }
-        }
-        unset($group, $tagName); // limpeza da referência
-
-        // Executa a busca com os IDs das tags já mapeados
-        $fileIds = $this->executeSearch($parsedQuery, $tagNameToId);
-
-        if (empty($fileIds)) {
+        if (empty($query)) {
             return new JSONResponse(['files' => []]);
         }
 
-        // Pega o diretório raiz do usuário
-        $userFolder = $this->rootFolder->getUserFolder($this->userId);
+        try {
+            // Parse da query
+            $parsedQuery = $this->parseSearchQuery($query);
+            $this->logger->info('Tags Search: Parsed query: ' . json_encode($parsedQuery));
 
-        $results = [];
-        foreach ($fileIds as $fileId) {
-            try {
-                $nodes = $userFolder->getById($fileId);
-                if (!empty($nodes)) {
-                    $node = $nodes[0];
-                    if (!$node->isReadable()) {
-                        continue;
-                    }
+            // Pega todas as tags disponíveis para o usuário
+            $allTags = $this->tagManager->getAllTags(true);
 
-                    // Obtém todas as tags do arquivo
-                    $fileTags = [];
-                    $tagIdsForFile = $this->tagMapper->getTagIdsForObjects([$fileId], 'files');
-                    if (isset($tagIdsForFile[$fileId])) {
-                        foreach ($tagIdsForFile[$fileId] as $tid) {
-                            try {
-                                $tags = $this->tagManager->getTagsByIds([$tid]);
-                                if (!empty($tags) && isset($tags[0]) && $tags[0] !== null) {
-                                    $fileTags[] = $tags[0]->getName();
+            // Mapeia nomes de tags para IDs (com lowercase para evitar problemas de case)
+            $tagNameToId = [];
+            foreach ($allTags as $tag) {
+                $tagNameToId[strtolower($tag->getName())] = $tag->getId();
+            }
+
+            // Ajusta os nomes das tags da query parseada para lowercase para casar com o map
+            foreach ($parsedQuery['groups'] as &$group) {
+                foreach ($group['tags'] as &$tagName) {
+                    $tagName = strtolower(trim($tagName));
+                }
+            }
+            unset($group, $tagName); // limpeza da referência
+
+            // Executa a busca com os IDs das tags já mapeados
+            $fileIds = $this->executeSearch($parsedQuery, $tagNameToId);
+
+            if (empty($fileIds)) {
+                return new JSONResponse(['files' => []]);
+            }
+
+            // Pega o diretório raiz do usuário
+            $userFolder = $this->rootFolder->getUserFolder($this->userId);
+
+            $results = [];
+            foreach ($fileIds as $fileId) {
+                try {
+                    $nodes = $userFolder->getById($fileId);
+                    if (!empty($nodes)) {
+                        $node = $nodes[0];
+                        if (!$node->isReadable()) {
+                            continue;
+                        }
+
+                        // Obtém todas as tags do arquivo
+                        $fileTags = [];
+                        $tagIdsForFile = $this->tagMapper->getTagIdsForObjects([$fileId], 'files');
+                        if (isset($tagIdsForFile[$fileId])) {
+                            foreach ($tagIdsForFile[$fileId] as $tid) {
+                                try {
+                                    $tags = $this->tagManager->getTagsByIds([$tid]);
+                                    if (!empty($tags) && isset($tags[0]) && $tags[0] !== null) {
+                                        $fileTags[] = $tags[0]->getName();
+                                    }
+                                } catch (\Exception $e) {
+                                    $this->logger->warning('Erro ao obter tag: ' . $e->getMessage());
+                                    continue;
                                 }
-                            } catch (\Exception $e) {
-                                $this->logger->warning('Erro ao obter tag: ' . $e->getMessage());
-                                continue;
                             }
                         }
+
+                        $relativePath = $userFolder->getRelativePath($node->getPath());
+                        
+                        // Coleta todos os metadados necessários
+                        $fileData = [
+                            'id' => $node->getId(),
+                            'name' => $node->getName(),
+                            'path' => dirname($relativePath),
+                            'tags' => $fileTags,
+                            'size' => $node->getSize(),
+                            'mtime' => $node->getMTime(),
+                            'mime' => $node->getMimeType(),
+                            'mimetype' => $node->getMimeType(), // compatibilidade
+                            'type' => $node->getType() === \OCP\Files\FileInfo::TYPE_FOLDER ? 'folder' : 'file',
+                            'etag' => $node->getEtag(),
+                            'permissions' => $node->getPermissions(),
+                            'owner' => $node->getOwner() ? $node->getOwner()->getUID() : $this->userId,
+                            'url' => $this->urlGenerator->linkToRoute('files.view.index', [
+                                'dir' => dirname($relativePath),
+                                'scrollto' => $node->getName()
+                            ])
+                        ];
+
+                        // Adiciona metadados extras se disponíveis
+                        if (method_exists($node, 'getCreationTime')) {
+                            $fileData['creationTime'] = $node->getCreationTime();
+                        }
+                        
+                        if (method_exists($node, 'getUploadTime')) {
+                            $fileData['uploadTime'] = $node->getUploadTime();
+                        }
+
+                        // Informações específicas para imagens
+                        if (str_starts_with($node->getMimeType(), 'image/')) {
+                            $fileData['isImage'] = true;
+                            
+                            // Tenta obter dimensões da imagem se possível
+                            try {
+                                $content = $node->getContent();
+                                if ($content && function_exists('getimagesizefromstring')) {
+                                    $imageInfo = @getimagesizefromstring($content);
+                                    if ($imageInfo) {
+                                        $fileData['width'] = $imageInfo[0];
+                                        $fileData['height'] = $imageInfo[1];
+                                    }
+                                }
+                            } catch (\Exception $e) {
+                                // Ignora erro ao tentar obter dimensões
+                                $this->logger->debug('Could not get image dimensions: ' . $e->getMessage());
+                            }
+                        }
+
+                        $results[] = $fileData;
                     }
-
-                    $relativePath = $userFolder->getRelativePath($node->getPath());
-                    $results[] = [
-                        'id' => $node->getId(),
-                        'name' => $node->getName(),
-                        'path' => dirname($relativePath),
-                        'tags' => $fileTags,
-                        'size' => $node->getSize(),
-                        'mtime' => $node->getMTime(),
-                        'mimetype' => $node->getMimeType(),
-                        'type' => $node->getType() === \OCP\Files\FileInfo::TYPE_FOLDER ? 'folder' : 'file',
-                        'url' => $this->urlGenerator->linkToRoute('files.view.index', [
-                            'dir' => dirname($relativePath),
-                            'scrollto' => $node->getName()
-                        ])
-                    ];
+                } catch (\Exception $e) {
+                    $this->logger->warning('Error processing file ' . $fileId . ': ' . $e->getMessage());
+                    continue;
                 }
-            } catch (\Exception $e) {
-                continue;
             }
+
+            // Ordena por nome
+            usort($results, function($a, $b) {
+                return strcasecmp($a['name'], $b['name']);
+            });
+
+            return new JSONResponse(['files' => $results]);
+
+        } catch (\Exception $e) {
+            $this->logger->error('Tags Search: Error: ' . $e->getMessage());
+            return new JSONResponse(['error' => $e->getMessage()], 500);
         }
-
-        // Ordena por nome
-        usort($results, function($a, $b) {
-            return strcasecmp($a['name'], $b['name']);
-        });
-
-        return new JSONResponse(['files' => $results]);
-
-    } catch (\Exception $e) {
-        $this->logger->error('Tags Search: Error: ' . $e->getMessage());
-        return new JSONResponse(['error' => $e->getMessage()], 500);
     }
-}
-
-
 
     private function parseSearchQuery(string $query): array {
         // Converte para maiúsculas para facilitar o parsing
