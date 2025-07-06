@@ -96,94 +96,94 @@ document.addEventListener('DOMContentLoaded', async function () {
 	}
 
 	function createPaginationControls() {
-    // Remove controles antigos se existirem
-    const existingControls = document.querySelector('.pagination-controls');
-    if (existingControls) {
-        existingControls.remove();
-    }
+		// Remove controles antigos se existirem
+		const existingControls = document.querySelector('.pagination-controls');
+		if (existingControls) {
+			existingControls.remove();
+		}
 
-    const controls = document.createElement('div');
-    controls.className = 'pagination-controls';
+		const controls = document.createElement('div');
+		controls.className = 'pagination-controls';
 
-    // Seletor de quantidade por página
-    const perPageContainer = document.createElement('div');
-    perPageContainer.className = 'per-page-container';
-    
-    const perPageLabel = document.createElement('label');
-    perPageLabel.textContent = 'Itens por página: ';
-    perPageLabel.setAttribute('for', 'items-per-page');
-    
-    const perPageSelect = document.createElement('select');
-    perPageSelect.id = 'items-per-page';
-    perPageSelect.className = 'per-page-select';
-    
-    [10, 20, 50, 100].forEach(num => {
-        const option = document.createElement('option');
-        option.value = num;
-        option.textContent = num;
-        if (num === itemsPerPage) option.selected = true;
-        perPageSelect.appendChild(option);
-    });
-    
-    perPageSelect.addEventListener('change', (e) => {
-        itemsPerPage = parseInt(e.target.value);
-        currentPage = 1;
-        renderPage();
-        updatePaginationButtons();
-    });
-    
-    perPageContainer.appendChild(perPageLabel);
-    perPageContainer.appendChild(perPageSelect);
+		// Seletor de quantidade por página
+		const perPageContainer = document.createElement('div');
+		perPageContainer.className = 'per-page-container';
 
-    // Container dos botões de navegação
-    const navContainer = document.createElement('div');
-    navContainer.className = 'pagination-nav';
+		const perPageLabel = document.createElement('label');
+		perPageLabel.textContent = 'Itens por página: ';
+		perPageLabel.setAttribute('for', 'items-per-page');
 
-    // Botão anterior
-    const prevBtn = document.createElement('button');
-    prevBtn.className = 'pagination-btn prev-btn';
-    prevBtn.textContent = '← Anterior';
-    prevBtn.onclick = () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderPage();
-            updatePaginationButtons();
-        }
-    };
+		const perPageSelect = document.createElement('select');
+		perPageSelect.id = 'items-per-page';
+		perPageSelect.className = 'per-page-select';
 
-    // Informação da página
-    const pageInfo = document.createElement('span');
-    pageInfo.className = 'page-info';
-    updatePageInfo(pageInfo);
+		[10, 20, 50, 100].forEach(num => {
+			const option = document.createElement('option');
+			option.value = num;
+			option.textContent = num;
+			if (num === itemsPerPage) option.selected = true;
+			perPageSelect.appendChild(option);
+		});
 
-    // Botão próximo
-    const nextBtn = document.createElement('button');
-    nextBtn.className = 'pagination-btn next-btn';
-    nextBtn.textContent = 'Próximo →';
-    nextBtn.onclick = () => {
-        const totalPages = Math.ceil(totalFiles.length / itemsPerPage);
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderPage();
-            updatePaginationButtons();
-        }
-    };
+		perPageSelect.addEventListener('change', (e) => {
+			itemsPerPage = parseInt(e.target.value);
+			currentPage = 1;
+			renderPage();
+			updatePaginationButtons();
+		});
 
-    navContainer.appendChild(prevBtn);
-    navContainer.appendChild(pageInfo);
-    navContainer.appendChild(nextBtn);
+		perPageContainer.appendChild(perPageLabel);
+		perPageContainer.appendChild(perPageSelect);
 
-    controls.appendChild(perPageContainer);
-    controls.appendChild(navContainer);
+		// Container dos botões de navegação
+		const navContainer = document.createElement('div');
+		navContainer.className = 'pagination-nav';
 
-    // Insere no wrapper específico
-    const wrapper = document.querySelector('.pagination-controls-wrapper');
-    if (wrapper) {
-        wrapper.appendChild(controls);
-    }
+		// Botão anterior
+		const prevBtn = document.createElement('button');
+		prevBtn.className = 'pagination-btn prev-btn';
+		prevBtn.textContent = '← Anterior';
+		prevBtn.onclick = () => {
+			if (currentPage > 1) {
+				currentPage--;
+				renderPage();
+				updatePaginationButtons();
+			}
+		};
 
-    updatePaginationButtons();
-}
+		// Informação da página
+		const pageInfo = document.createElement('span');
+		pageInfo.className = 'page-info';
+		updatePageInfo(pageInfo);
+
+		// Botão próximo
+		const nextBtn = document.createElement('button');
+		nextBtn.className = 'pagination-btn next-btn';
+		nextBtn.textContent = 'Próximo →';
+		nextBtn.onclick = () => {
+			const totalPages = Math.ceil(totalFiles.length / itemsPerPage);
+			if (currentPage < totalPages) {
+				currentPage++;
+				renderPage();
+				updatePaginationButtons();
+			}
+		};
+
+		navContainer.appendChild(prevBtn);
+		navContainer.appendChild(pageInfo);
+		navContainer.appendChild(nextBtn);
+
+		controls.appendChild(perPageContainer);
+		controls.appendChild(navContainer);
+
+		// Insere no wrapper específico
+		const wrapper = document.querySelector('.pagination-controls-wrapper');
+		if (wrapper) {
+			wrapper.appendChild(controls);
+		}
+
+		updatePaginationButtons();
+	}
 
 	function updatePageInfo(pageInfo) {
 		if (!pageInfo) {
@@ -260,10 +260,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         date.className = 'filedate';
         date.textContent = formatDate(file.mtime);
 
-        // Criar tooltip
+        // Criar tooltip com metadados expandidos
         const tooltip = document.createElement('div');
         tooltip.className = 'file-tooltip';
-        
+
         // Nome completo do arquivo
         const tooltipName = document.createElement('div');
         tooltipName.className = 'tooltip-row';
@@ -281,6 +281,28 @@ document.addEventListener('DOMContentLoaded', async function () {
         tooltipDate.className = 'tooltip-row';
         tooltipDate.innerHTML = `<span class="tooltip-label">Modificado:</span> ${formatDate(file.mtime)}`;
         tooltip.appendChild(tooltipDate);
+
+        // Tipo MIME
+        const tooltipMime = document.createElement('div');
+        tooltipMime.className = 'tooltip-row';
+        tooltipMime.innerHTML = `<span class="tooltip-label">Tipo:</span> ${file.mime || file.mimetype}`;
+        tooltip.appendChild(tooltipMime);
+
+        // Proprietário
+        if (file.owner) {
+            const tooltipOwner = document.createElement('div');
+            tooltipOwner.className = 'tooltip-row';
+            tooltipOwner.innerHTML = `<span class="tooltip-label">Proprietário:</span> ${file.owner}`;
+            tooltip.appendChild(tooltipOwner);
+        }
+
+        // Dimensões da imagem (se for imagem)
+        if (file.isImage && file.width && file.height) {
+            const tooltipDimensions = document.createElement('div');
+            tooltipDimensions.className = 'tooltip-row';
+            tooltipDimensions.innerHTML = `<span class="tooltip-label">Dimensões:</span> ${file.width} × ${file.height} pixels`;
+            tooltip.appendChild(tooltipDimensions);
+        }
 
         // Tags associadas
         if (file.tags && file.tags.length > 0) {
@@ -302,13 +324,16 @@ document.addEventListener('DOMContentLoaded', async function () {
             tooltip.appendChild(tooltipTags);
         }
 
+        // Adiciona elementos ao link
         link.appendChild(img);
         link.appendChild(name);
         link.appendChild(date);
 
+        // Adiciona link e tooltip ao card
         item.appendChild(link);
         item.appendChild(tooltip);
 
+        // Adiciona o card aos resultados
         tagResults.appendChild(item);
     });
 
