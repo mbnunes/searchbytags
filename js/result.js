@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 			const val = input.value.trim();
 			currentQuery = val;
 			currentPage = 1; // Reset para primeira página ao fazer nova busca
-			
+
 			if (val.length >= 2) {
 				const tags = await fetchTags();
 				const datalist = document.getElementById('tag-suggestions');
@@ -67,30 +67,33 @@ document.addEventListener('DOMContentLoaded', async function () {
 	}
 
 	async function loadResults(query) {
-		try {
-			const res = await fetch(OC.generateUrl('/apps/search_by_tags/api/search') + '?query=' + encodeURIComponent(query));
-			const data = await res.json();
+    try {
+        console.log('Carregando resultados para:', query); // Debug
+        
+        const res = await fetch(OC.generateUrl('/apps/search_by_tags/api/search') + '?query=' + encodeURIComponent(query));
+        const data = await res.json();
 
-			tagResults.innerHTML = '';
+        tagResults.innerHTML = '';
 
-			if (!data.files || data.files.length === 0) {
-				tagResults.innerHTML = '<div class="item">Nenhum arquivo encontrado.</div>';
-				return;
-			}
+        if (!data.files || data.files.length === 0) {
+            tagResults.innerHTML = '<div class="item">Nenhum arquivo encontrado.</div>';
+            return;
+        }
 
-			// Armazena todos os arquivos
-			totalFiles = data.files;
+        // Armazena todos os arquivos
+        totalFiles = data.files;
+        console.log('Total de arquivos encontrados:', totalFiles.length); // Debug
 
-			// Cria controles de paginação
-			createPaginationControls();
+        // Cria controles de paginação
+        createPaginationControls();
 
-			// Renderiza apenas os arquivos da página atual
-			renderPage();
+        // Renderiza apenas os arquivos da página atual
+        renderPage();
 
-		} catch (err) {
-			console.error('Erro ao carregar arquivos:', err);
-		}
-	}
+    } catch (err) {
+        console.error('Erro ao carregar arquivos:', err);
+    }
+}
 
 	function createPaginationControls() {
 		// Remove controles antigos se existirem
@@ -105,15 +108,15 @@ document.addEventListener('DOMContentLoaded', async function () {
 		// Seletor de quantidade por página
 		const perPageContainer = document.createElement('div');
 		perPageContainer.className = 'per-page-container';
-		
+
 		const perPageLabel = document.createElement('label');
 		perPageLabel.textContent = 'Itens por página: ';
 		perPageLabel.setAttribute('for', 'items-per-page');
-		
+
 		const perPageSelect = document.createElement('select');
 		perPageSelect.id = 'items-per-page';
 		perPageSelect.className = 'per-page-select';
-		
+
 		[10, 20, 50, 100].forEach(num => {
 			const option = document.createElement('option');
 			option.value = num;
@@ -121,14 +124,14 @@ document.addEventListener('DOMContentLoaded', async function () {
 			if (num === itemsPerPage) option.selected = true;
 			perPageSelect.appendChild(option);
 		});
-		
+
 		perPageSelect.addEventListener('change', (e) => {
 			itemsPerPage = parseInt(e.target.value);
 			currentPage = 1;
 			renderPage();
 			updatePaginationButtons();
 		});
-		
+
 		perPageContainer.appendChild(perPageLabel);
 		perPageContainer.appendChild(perPageSelect);
 
@@ -173,8 +176,15 @@ document.addEventListener('DOMContentLoaded', async function () {
 		controls.appendChild(perPageContainer);
 		controls.appendChild(navContainer);
 
-		// Insere os controles antes dos resultados
-		tagResults.parentNode.insertBefore(controls, tagResults);
+		// MUDANÇA AQUI: Encontra o container correto
+		const mainContent = document.querySelector('.main-content');
+		if (mainContent) {
+			// Insere como primeiro filho do main-content
+			mainContent.insertBefore(controls, mainContent.firstChild);
+		} else {
+			// Fallback: se não encontrar main-content, insere antes do tagResults
+			tagResults.parentNode.insertBefore(controls, tagResults);
+		}
 
 		updatePaginationButtons();
 	}
@@ -186,7 +196,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 		const totalPages = Math.ceil(totalFiles.length / itemsPerPage);
 		const startItem = (currentPage - 1) * itemsPerPage + 1;
 		const endItem = Math.min(currentPage * itemsPerPage, totalFiles.length);
-		
+
 		pageInfo.textContent = `${startItem}-${endItem} de ${totalFiles.length} arquivos (Página ${currentPage} de ${totalPages})`;
 	}
 
@@ -194,12 +204,12 @@ document.addEventListener('DOMContentLoaded', async function () {
 		const prevBtn = document.querySelector('.prev-btn');
 		const nextBtn = document.querySelector('.next-btn');
 		const pageInfo = document.querySelector('.page-info');
-		
+
 		const totalPages = Math.ceil(totalFiles.length / itemsPerPage);
-		
+
 		prevBtn.disabled = currentPage === 1;
 		nextBtn.disabled = currentPage === totalPages;
-		
+
 		updatePageInfo(pageInfo);
 	}
 
