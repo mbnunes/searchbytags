@@ -210,147 +210,180 @@ document.addEventListener('DOMContentLoaded', async function () {
 	}
 
 	function renderPage() {
-    tagResults.innerHTML = '';
+		tagResults.innerHTML = '';
 
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const pageFiles = totalFiles.slice(startIndex, endIndex);
+		const startIndex = (currentPage - 1) * itemsPerPage;
+		const endIndex = startIndex + itemsPerPage;
+		const pageFiles = totalFiles.slice(startIndex, endIndex);
 
-    // Prepara lista para o viewer
-    const fileList = [];
-    pageFiles.forEach(file => {
-        fileList.push({
-            id: file.id,
-            name: file.name,
-            mime: file.mime || 'image/jpeg',
-            path: file.path + '/' + file.name,
-            size: file.size || 0,
-            etag: file.etag || '',
-            permissions: 1,
-            type: 'file',
-            directory: file.path
-        });
-    });
+		// Prepara lista para o viewer - CORREÇÃO AQUI
+		const fileList = [];
+		pageFiles.forEach(file => {
+			fileList.push({
+				id: file.id,
+				name: file.name,
+				mime: file.mime || file.mimetype || 'application/octet-stream',
+				mimetype: file.mimetype || file.mime || 'application/octet-stream',
+				path: file.path === '/' ? '/' + file.name : file.path + '/' + file.name,
+				size: file.size || 0,
+				etag: file.etag || '',
+				permissions: file.permissions || 31, // permissões padrão
+				type: file.type || 'file',
+				hasPreview: true,
+				isImage: file.isImage || (file.mimetype && file.mimetype.startsWith('image/')),
+				directory: file.path || '/'
+			});
+		});
 
-    pageFiles.forEach((file, index) => {
-        const item = document.createElement('div');
-        item.className = 'file-card';
+		pageFiles.forEach((file, index) => {
+			const item = document.createElement('div');
+			item.className = 'file-card';
 
-        const link = document.createElement('a');
-        link.href = '#';
-        link.className = 'file-link';
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (OCA?.Viewer?.open) {
-                OCA.Viewer.open(fileList, index);
-            }
-        });
+			const link = document.createElement('a');
+			link.href = '#';
+			link.className = 'file-link';
+			link.addEventListener('click', (e) => {
+				e.preventDefault();
 
-        const img = document.createElement('img');
-        img.src = OC.generateUrl(`/core/preview?fileId=${file.id}&x=128&y=128`);
-        img.alt = file.name;
-        img.className = 'thumbnail';
+				// Para vídeos, usa o player de vídeo
+				if (file.mimetype && file.mimetype.startsWith('video/')) {
+					// Abre diretamente o arquivo
+					const filePath = file.path === '/' ? '/' + file.name : file.path + '/' + file.name;
+					window.OC.Files.App.fileList.showFile(file.name, {
+						fileId: file.id,
+						dir: file.path
+					});
+				}
+				// Para imagens e outros arquivos, usa o Viewer
+				else if (OCA?.Viewer?.open) {
+					OCA.Viewer.open({
+						path: file.path === '/' ? '/' + file.name : file.path + '/' + file.name,
+						list: fileList,
+						canLoop: true
+					});
+				}
+				// Fallback - abre o arquivo no Files
+				else {
+					window.location.href = OC.generateUrl('/apps/files/?dir={dir}&openfile={fileId}', {
+						dir: encodeURIComponent(file.path),
+						fileId: file.id
+					});
+				}
+			});
 
-        const name = document.createElement('div');
-        name.className = 'filename';
-        name.title = file.name;
-        name.textContent = shortenFilename(file.name);
+			const img = document.createElement('img');
+			img.src = OC.generateUrl(`/core/preview?fileId=${file.id}&x=128&y=128`);
+			img.alt = file.name;
+			img.className = 'thumbnail';
 
-        const date = document.createElement('div');
-        date.className = 'filedate';
-        date.textContent = formatDate(file.mtime);
+			// Adiciona loading lazy para performance
+			img.loading = 'lazy';
 
-        // Criar tooltip com metadados expandidos
-        const tooltip = document.createElement('div');
-        tooltip.className = 'file-tooltip';
+			// Fallback se a preview falhar
+			img.onerror = function () {
+				this.src = OC.imagePath('core', 'filetypes/file');
+			};
 
-        // Nome completo do arquivo
-        const tooltipName = document.createElement('div');
-        tooltipName.className = 'tooltip-row';
-        tooltipName.innerHTML = `<span class="tooltip-label">Nome:</span> ${file.name}`;
-        tooltip.appendChild(tooltipName);
+			const name = document.createElement('div');
+			name.className = 'filename';
+			name.title = file.name;
+			name.textContent = shortenFilename(file.name);
 
-        // Tamanho do arquivo
-        const tooltipSize = document.createElement('div');
-        tooltipSize.className = 'tooltip-row';
-        tooltipSize.innerHTML = `<span class="tooltip-label">Tamanho:</span> ${formatFileSize(file.size)}`;
-        tooltip.appendChild(tooltipSize);
+			const date = document.createElement('div');
+			date.className = 'filedate';
+			date.textContent = formatDate(file.mtime);
 
-        // Data de modificação
-        const tooltipDate = document.createElement('div');
-        tooltipDate.className = 'tooltip-row';
-        tooltipDate.innerHTML = `<span class="tooltip-label">Modificado:</span> ${formatDate(file.mtime)}`;
-        tooltip.appendChild(tooltipDate);
+			// Criar tooltip com metadados expandidos
+			const tooltip = document.createElement('div');
+			tooltip.className = 'file-tooltip';
 
-        // Tipo MIME
-        const tooltipMime = document.createElement('div');
-        tooltipMime.className = 'tooltip-row';
-        tooltipMime.innerHTML = `<span class="tooltip-label">Tipo:</span> ${file.mime || file.mimetype}`;
-        tooltip.appendChild(tooltipMime);
+			// Nome completo do arquivo
+			const tooltipName = document.createElement('div');
+			tooltipName.className = 'tooltip-row';
+			tooltipName.innerHTML = `<span class="tooltip-label">Nome:</span> ${file.name}`;
+			tooltip.appendChild(tooltipName);
 
-        // Proprietário
-        if (file.owner) {
-            const tooltipOwner = document.createElement('div');
-            tooltipOwner.className = 'tooltip-row';
-            tooltipOwner.innerHTML = `<span class="tooltip-label">Proprietário:</span> ${file.owner}`;
-            tooltip.appendChild(tooltipOwner);
-        }
+			// Tamanho do arquivo
+			const tooltipSize = document.createElement('div');
+			tooltipSize.className = 'tooltip-row';
+			tooltipSize.innerHTML = `<span class="tooltip-label">Tamanho:</span> ${formatFileSize(file.size)}`;
+			tooltip.appendChild(tooltipSize);
 
-        // Dimensões da imagem (se for imagem)
-        if (file.isImage && file.width && file.height) {
-            const tooltipDimensions = document.createElement('div');
-            tooltipDimensions.className = 'tooltip-row';
-            tooltipDimensions.innerHTML = `<span class="tooltip-label">Dimensões:</span> ${file.width} × ${file.height} pixels`;
-            tooltip.appendChild(tooltipDimensions);
-        }
+			// Data de modificação
+			const tooltipDate = document.createElement('div');
+			tooltipDate.className = 'tooltip-row';
+			tooltipDate.innerHTML = `<span class="tooltip-label">Modificado:</span> ${formatDate(file.mtime)}`;
+			tooltip.appendChild(tooltipDate);
 
-        // Tags associadas
-        if (file.tags && file.tags.length > 0) {
-            const tooltipTags = document.createElement('div');
-            tooltipTags.className = 'tooltip-row';
-            tooltipTags.innerHTML = '<span class="tooltip-label">Tags:</span>';
-            
-            const tagsContainer = document.createElement('div');
-            tagsContainer.className = 'tooltip-tags';
-            
-            file.tags.forEach(tag => {
-                const tagSpan = document.createElement('span');
-                tagSpan.className = 'tooltip-tag';
-                tagSpan.textContent = tag;
-                tagsContainer.appendChild(tagSpan);
-            });
-            
-            tooltipTags.appendChild(tagsContainer);
-            tooltip.appendChild(tooltipTags);
-        }
+			// Tipo MIME
+			const tooltipMime = document.createElement('div');
+			tooltipMime.className = 'tooltip-row';
+			tooltipMime.innerHTML = `<span class="tooltip-label">Tipo:</span> ${file.mime || file.mimetype}`;
+			tooltip.appendChild(tooltipMime);
 
-        // Adiciona elementos ao link
-        link.appendChild(img);
-        link.appendChild(name);
-        link.appendChild(date);
+			// Proprietário
+			if (file.owner) {
+				const tooltipOwner = document.createElement('div');
+				tooltipOwner.className = 'tooltip-row';
+				tooltipOwner.innerHTML = `<span class="tooltip-label">Proprietário:</span> ${file.owner}`;
+				tooltip.appendChild(tooltipOwner);
+			}
 
-        // Adiciona link e tooltip ao card
-        item.appendChild(link);
-        item.appendChild(tooltip);
+			// Dimensões da imagem (se for imagem)
+			if (file.isImage && file.width && file.height) {
+				const tooltipDimensions = document.createElement('div');
+				tooltipDimensions.className = 'tooltip-row';
+				tooltipDimensions.innerHTML = `<span class="tooltip-label">Dimensões:</span> ${file.width} × ${file.height} pixels`;
+				tooltip.appendChild(tooltipDimensions);
+			}
 
-        // Adiciona o card aos resultados
-        tagResults.appendChild(item);
-    });
+			// Tags associadas
+			if (file.tags && file.tags.length > 0) {
+				const tooltipTags = document.createElement('div');
+				tooltipTags.className = 'tooltip-row';
+				tooltipTags.innerHTML = '<span class="tooltip-label">Tags:</span>';
 
-    // Scroll para o topo dos resultados
-    tagResults.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
+				const tagsContainer = document.createElement('div');
+				tagsContainer.className = 'tooltip-tags';
 
-// Função auxiliar para formatar tamanho de arquivo
-function formatFileSize(bytes) {
-    if (!bytes || bytes === 0) return '0 Bytes';
-    
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
+				file.tags.forEach(tag => {
+					const tagSpan = document.createElement('span');
+					tagSpan.className = 'tooltip-tag';
+					tagSpan.textContent = tag;
+					tagsContainer.appendChild(tagSpan);
+				});
+
+				tooltipTags.appendChild(tagsContainer);
+				tooltip.appendChild(tooltipTags);
+			}
+
+			// Adiciona elementos ao link
+			link.appendChild(img);
+			link.appendChild(name);
+			link.appendChild(date);
+
+			// Adiciona link e tooltip ao card
+			item.appendChild(link);
+			item.appendChild(tooltip);
+
+			// Adiciona o card aos resultados
+			tagResults.appendChild(item);
+		});
+
+		// Scroll para o topo dos resultados
+		tagResults.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+	}
+
+	// Função auxiliar para formatar tamanho de arquivo
+	function formatFileSize(bytes) {
+		if (!bytes || bytes === 0) return '0 Bytes';
+
+		const k = 1024;
+		const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+		const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+		return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+	}
 
 	async function renderTagFolders(query) {
 		const tagFoldersContainer = document.getElementById('tag-folders');
