@@ -212,11 +212,40 @@ document.addEventListener('DOMContentLoaded', async function () {
 	function renderPage() {
 		tagResults.innerHTML = '';
 
+		// Event delegation - adiciona listener apenas uma vez no container
+		if (!tagResults.hasAttribute('data-click-handler')) {
+			tagResults.setAttribute('data-click-handler', 'true');
+
+			tagResults.addEventListener('click', function (e) {
+				// Procura o link clicado
+				const link = e.target.closest('.file-link');
+				if (!link) return;
+
+				e.preventDefault();
+				console.log('Click funcionou!');
+
+				// Pega o card pai que contém os dados
+				const card = link.closest('.file-card');
+				const fileId = card.getAttribute('data-file-id');
+				const filePath = card.getAttribute('data-file-path');
+				const mimeType = card.getAttribute('data-mime-type');
+
+				const isImage = mimeType.startsWith('image/');
+				const isVideo = mimeType.startsWith('video/');
+
+				if (isImage || isVideo) {
+					window.location.href = `${OC.getRootPath()}/apps/files/files/${fileId}?dir=${filePath}&openfile=true`;
+				} else {
+					window.location.href = `${OC.getRootPath()}/apps/files/files/${fileId}?dir=${filePath}`;
+				}
+			});
+		}
+
 		const startIndex = (currentPage - 1) * itemsPerPage;
 		const endIndex = startIndex + itemsPerPage;
 		const pageFiles = totalFiles.slice(startIndex, endIndex);
 
-		// Prepara lista para o viewer - CORREÇÃO AQUI
+		// Prepara lista para o viewer
 		const fileList = [];
 		pageFiles.forEach(file => {
 			fileList.push({
@@ -227,7 +256,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 				path: file.path === '/' ? '/' + file.name : file.path + '/' + file.name,
 				size: file.size || 0,
 				etag: file.etag || '',
-				permissions: file.permissions || 31, // permissões padrão
+				permissions: file.permissions || 31,
 				type: file.type || 'file',
 				hasPreview: true,
 				isImage: file.isImage || (file.mimetype && file.mimetype.startsWith('image/')),
@@ -239,31 +268,15 @@ document.addEventListener('DOMContentLoaded', async function () {
 			const item = document.createElement('div');
 			item.className = 'file-card';
 
+			// Armazena os dados do arquivo no card
+			item.setAttribute('data-file-id', file.id);
+			item.setAttribute('data-file-path', file.path);
+			item.setAttribute('data-mime-type', file.mimetype || file.mime || '');
+
 			const link = document.createElement('a');
 			link.href = '#';
 			link.className = 'file-link';
-
-			console.log("CAGADA AQUI");
-
-			link.addEventListener('click', (e) => {
-				e.preventDefault();
-
-				console.log("ENTROU AQUI!!!!");
-
-				const mimeType = file.mimetype || file.mime || '';
-				const isImage = mimeType.startsWith('image/') || file.isImage;
-				const isVideo = mimeType.startsWith('video/');
-
-				if (isImage || isVideo) {
-					// Para mídia, abre o arquivo diretamente com o parâmetro openfile
-					const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}&openfile=true`;
-					window.location.href = fileUrl;
-				} else {
-					// Para outros arquivos, abre normalmente
-					const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}`;
-					window.location.href = fileUrl;
-				}
-			});
+			// NÃO adicione addEventListener aqui
 
 			const img = document.createElement('img');
 			img.src = OC.generateUrl(`/core/preview?fileId=${file.id}&x=128&y=128`);
