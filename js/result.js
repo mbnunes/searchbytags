@@ -1,4 +1,33 @@
 document.addEventListener('DOMContentLoaded', async function () {
+
+	// Adicione isso FORA da função renderPage, logo após o DOMContentLoaded
+	document.addEventListener('click', function(e) {
+		// Verifica se o clique foi em um elemento dentro de .file-link
+		const fileLink = e.target.closest('.file-link');
+		
+		if (fileLink && fileLink.closest('#tag-results')) {
+			e.preventDefault();
+			e.stopPropagation();
+			
+			console.log("Click detectado via document!");
+			
+			const fileCard = fileLink.closest('.file-card');
+			const fileId = fileCard.dataset.fileId;
+			const filePath = fileCard.dataset.filePath;
+			const mimeType = fileCard.dataset.mimeType;
+			const isImage = mimeType.startsWith('image/');
+			const isVideo = mimeType.startsWith('video/');
+			
+			if (isImage || isVideo) {
+				const fileUrl = `${OC.getRootPath()}/apps/files/files/${fileId}?dir=${filePath}&openfile=true`;
+				window.location.href = fileUrl;
+			} else {
+				const fileUrl = `${OC.getRootPath()}/apps/files/files/${fileId}?dir=${filePath}`;
+				window.location.href = fileUrl;
+			}
+		}
+	}, true);
+
 	const input = document.getElementById('tag-input');
 	const tagResults = document.getElementById('tag-results');
 
