@@ -263,6 +263,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 				function openInFiles() {
 					// URL no formato correto sem encoding
 					const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}`;
+					console.log(fileUrl);
 					window.location.href = fileUrl;
 				}
 			});
