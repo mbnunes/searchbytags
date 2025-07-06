@@ -243,22 +243,26 @@ document.addEventListener('DOMContentLoaded', async function () {
 			link.href = '#';
 			link.className = 'file-link';
 			link.addEventListener('click', (e) => {
-    e.preventDefault();
-    
-    const mimeType = file.mimetype || file.mime || '';
-    const isImage = mimeType.startsWith('image/') || file.isImage;
-    const isVideo = mimeType.startsWith('video/');
-    
-    if (isImage || isVideo) {
-        // Para mídia, abre o arquivo diretamente com o parâmetro openfile
-        const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}&openfile=true`;
-        window.location.href = fileUrl;
-    } else {
-        // Para outros arquivos, abre normalmente
-        const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}`;
-        window.location.href = fileUrl;
-    }
-});
+				e.preventDefault();
+
+				const mimeType = file.mimetype || file.mime || '';
+				const isImage = mimeType.startsWith('image/') || file.isImage;
+				const isVideo = mimeType.startsWith('video/');
+
+				console.log(mimeType);
+
+				if (isImage || isVideo) {
+					// Para mídia, abre o arquivo diretamente com o parâmetro openfile
+					const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}&openfile=true`;
+					console.log(fileUrl);
+					window.location.href = fileUrl;
+				} else {
+					// Para outros arquivos, abre normalmente
+					const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}`;
+					console.log(fileUrl);
+					window.location.href = fileUrl;
+				}
+			});
 
 			const img = document.createElement('img');
 			img.src = OC.generateUrl(`/core/preview?fileId=${file.id}&x=128&y=128`);
