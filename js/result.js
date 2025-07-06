@@ -242,27 +242,24 @@ document.addEventListener('DOMContentLoaded', async function () {
 			const link = document.createElement('a');
 			link.href = '#';
 			link.className = 'file-link';
-			// Em vez de adicionar no link, adiciona no item (card)
-			item.addEventListener('click', (e) => {
-				console.log("CLICK NO CARD!!!!");
-				
-				// Verifica se clicou em um link dentro do card
-				if (e.target.closest('.file-link')) {
-					e.preventDefault();
-					
-					const mimeType = file.mimetype || file.mime || '';
-					const isImage = mimeType.startsWith('image/') || file.isImage;
-					const isVideo = mimeType.startsWith('video/');
+			link.onclick = function(e) {
+    console.log("CLICK via onclick!!!!");
+    e.preventDefault();
+    
+    const mimeType = file.mimetype || file.mime || '';
+    const isImage = mimeType.startsWith('image/') || file.isImage;
+    const isVideo = mimeType.startsWith('video/');
 
-					if (isImage || isVideo) {
-						const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}&openfile=true`;
-						window.location.href = fileUrl;
-					} else {
-						const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}`;
-						window.location.href = fileUrl;
-					}
-				}
-			});
+    if (isImage || isVideo) {
+        const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}&openfile=true`;
+        window.location.href = fileUrl;
+    } else {
+        const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}`;
+        window.location.href = fileUrl;
+    }
+    
+    return false;
+};
 			const img = document.createElement('img');
 			img.src = OC.generateUrl(`/core/preview?fileId=${file.id}&x=128&y=128`);
 			img.alt = file.name;
