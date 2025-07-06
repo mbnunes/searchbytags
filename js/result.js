@@ -244,31 +244,26 @@ document.addEventListener('DOMContentLoaded', async function () {
 			link.className = 'file-link';
 			link.addEventListener('click', (e) => {
 				e.preventDefault();
-				
-				// Para o Viewer do Nextcloud, precisamos usar o método correto
-				if (OCA?.Viewer?.open) {
-					// O Viewer espera o fileList no formato correto
-					OCA.Viewer.open({
-						fileInfo: {
-							id: file.id,
-							name: file.name,
-							mimetype: file.mimetype || file.mime,
-							size: file.size,
-							etag: file.etag,
-							permissions: file.permissions || 31,
-							hasPreview: true
-						},
-						path: file.path + '/' + file.name // Path sem encoding
-					});
-				} 
-				// Fallback - abre o arquivo no Files sem encoding duplo
-				else {
-					// Usa o path direto sem encoding adicional
-					const params = new URLSearchParams({
-						dir: file.path,
-						openfile: file.id
-					});
-					window.location.href = OC.generateUrl('/apps/files/files?' + params.toString());
+
+				// Para imagens, tenta abrir no Viewer
+				if (file.mimetype && file.mimetype.startsWith('image/') && OCA?.Viewer?.open) {
+					try {
+						OCA.Viewer.open({
+							fileInfo: fileList[index],
+							list: fileList
+						});
+					} catch (err) {
+						// Se falhar, usa o fallback
+						openInFiles();
+					}
+				} else {
+					openInFiles();
+				}
+
+				function openInFiles() {
+					// URL no formato correto sem encoding
+					const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}`;
+					window.location.href = fileUrl;
 				}
 			});
 
