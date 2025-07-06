@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 			link.addEventListener('click', (e) => {
     e.preventDefault();
     
-    // Debug - vamos ver o que está vindo
+    // Debug
     console.log('File info:', {
         name: file.name,
         mime: file.mime,
@@ -253,64 +253,38 @@ document.addEventListener('DOMContentLoaded', async function () {
         isImage: file.isImage
     });
     
-    // Verifica se o Viewer está disponível
-    console.log('Viewer disponível?', typeof OCA !== 'undefined' && OCA.Viewer && typeof OCA.Viewer.open === 'function');
-    
-    // Pega o mimetype de forma consistente
     const mimeType = file.mimetype || file.mime || '';
+    const isImage = mimeType.startsWith('image/') || file.isImage;
+    const isVideo = mimeType.startsWith('video/');
     
-    // Verifica se é imagem
-    const isImage = (mimeType && mimeType.startsWith('image/')) || 
-                    file.isImage || 
-                    /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico|tiff?)$/i.test(file.name);
+    console.log('É imagem?', isImage);
+    console.log('É vídeo?', isVideo);
     
-    // Verifica se é vídeo
-    const isVideo = (mimeType && mimeType.startsWith('video/')) || 
-                    /\.(mp4|avi|mov|wmv|flv|mkv|webm|m4v|mpg|mpeg|3gp|ogv)$/i.test(file.name);
-    
-    // Para imagens e vídeos, tenta diferentes métodos
+    // Remove a verificação do OCA.Viewer da condição
     if (isImage || isVideo) {
-        // Método 1: Tenta o Viewer.open com a lista completa
-        if (window.OCA && window.OCA.Viewer && window.OCA.Viewer.open) {
+        console.log('É mídia! Tentando abrir...');
+        
+        // Tenta usar o Viewer se disponível
+        if (window.OCA && window.OCA.Viewer && typeof window.OCA.Viewer.open === 'function') {
             try {
-                console.log('Tentando Viewer.open com lista...');
+                console.log('Viewer disponível, abrindo...');
                 window.OCA.Viewer.open(fileList[index]);
                 return;
             } catch (err) {
-                console.error('Erro método 1:', err);
+                console.error('Erro ao usar Viewer:', err);
             }
+        } else {
+            console.log('Viewer não disponível');
         }
         
-        // Método 2: Tenta abrir com o path direto
-        if (window.OCA && window.OCA.Viewer && window.OCA.Viewer.open) {
-            try {
-                console.log('Tentando Viewer.open com path...');
-                const fullPath = file.path === '/' ? '/' + file.name : file.path + '/' + file.name;
-                window.OCA.Viewer.open(fullPath);
-                return;
-            } catch (err) {
-                console.error('Erro método 2:', err);
-            }
-        }
-        
-        // Método 3: Usa o Files.App se disponível
-        if (window.OCA && window.OCA.Files && window.OCA.Files.App) {
-            try {
-                console.log('Tentando Files.App...');
-                window.OCA.Files.App.fileList.showDetailsView(file.name, 'preview');
-                return;
-            } catch (err) {
-                console.error('Erro método 3:', err);
-            }
-        }
+        // Se não conseguiu com o Viewer, abre direto
+        openInFiles();
+    } else {
+        console.log('Não é mídia, abrindo no Files');
+        openInFiles();
     }
     
-    // Fallback final
-    console.log('Usando fallback - abrindo no Files');
-    openInFiles();
-    
     function openInFiles() {
-        // URL no formato correto sem encoding
         const fileUrl = `${OC.getRootPath()}/apps/files/files/${file.id}?dir=${file.path}`;
         window.location.href = fileUrl;
     }
