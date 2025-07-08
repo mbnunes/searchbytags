@@ -92,6 +92,10 @@ document.addEventListener('DOMContentLoaded', async function () {
 			// Renderiza apenas os arquivos da página atual
 			renderPage();
 
+
+			// Chama a função após criar todos os cards
+			setupTooltips();
+
 		} catch (err) {
 			console.error('Erro ao carregar arquivos:', err);
 		}
@@ -397,6 +401,70 @@ document.addEventListener('DOMContentLoaded', async function () {
 		// Scroll para o topo dos resultados
 		tagResults.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 	}
+
+	// Após o loop forEach que cria os cards, adicione:
+
+// Função para posicionar tooltips
+function setupTooltips() {
+    const fileCards = document.querySelectorAll('.file-card');
+    
+    fileCards.forEach(card => {
+        const tooltip = card.querySelector('.file-tooltip');
+        
+        card.addEventListener('mouseenter', function(e) {
+            // Obtém as dimensões e posição do card
+            const cardRect = this.getBoundingClientRect();
+            
+            // Temporariamente torna visível para calcular dimensões
+            tooltip.style.visibility = 'hidden';
+            tooltip.style.opacity = '0';
+            tooltip.style.display = 'block';
+            
+            // Obtém as dimensões do tooltip
+            const tooltipRect = tooltip.getBoundingClientRect();
+            
+            // Calcula a posição X (centralizada)
+            const left = cardRect.left + (cardRect.width / 2) - (tooltipRect.width / 2);
+            
+            // Calcula a posição Y (acima do card por padrão)
+            let top = cardRect.top - tooltipRect.height - 8;
+            
+            // Verifica se há espaço suficiente acima
+            if (top < 10) {
+                // Se não houver espaço acima, posiciona abaixo
+                top = cardRect.bottom + 8;
+                tooltip.classList.add('tooltip-below');
+            } else {
+                tooltip.classList.remove('tooltip-below');
+            }
+            
+            // Ajusta se sair da tela pela direita
+            let adjustedLeft = left;
+            if (left + tooltipRect.width > window.innerWidth - 10) {
+                adjustedLeft = window.innerWidth - tooltipRect.width - 10;
+            }
+            
+            // Ajusta se sair da tela pela esquerda
+            if (adjustedLeft < 10) {
+                adjustedLeft = 10;
+            }
+            
+            // Aplica as posições
+            tooltip.style.left = adjustedLeft + 'px';
+            tooltip.style.top = top + 'px';
+            tooltip.style.display = 'block';
+        });
+        
+        card.addEventListener('mouseleave', function(e) {
+            const tooltip = this.querySelector('.file-tooltip');
+            tooltip.style.display = 'none';
+        });
+    });
+}
+
+
+// Se você carregar mais cards dinamicamente (paginação), 
+// chame setupTooltips() novamente após adicionar novos cards
 
 	// Função auxiliar para formatar tamanho de arquivo
 	function formatFileSize(bytes) {

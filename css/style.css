@@ -318,35 +318,40 @@
 }
 
 .file-tooltip {
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
+    position: fixed; /* Mudança principal */
     background-color: rgba(0, 0, 0, 0.9);
     color: white;
     padding: 12px;
     border-radius: 6px;
     font-size: 13px;
     white-space: nowrap;
-    z-index: 1000;
+    z-index: 99999;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s, visibility 0.3s;
     pointer-events: none;
     max-width: 300px;
     width: max-content;
-    margin-bottom: 8px;
-	z-index: 9999;
+    /* Remova bottom, left, transform e margin-bottom */
 }
 
 .file-tooltip::after {
     content: '';
     position: absolute;
-    top: 100%;
+    bottom: -6px; /* Mudança: ajuste para ficar na parte inferior */
     left: 50%;
     transform: translateX(-50%);
     border: 6px solid transparent;
+    border-bottom-color: transparent;
     border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Adicione esta classe para quando o tooltip aparecer abaixo */
+.file-tooltip.tooltip-below::after {
+    top: -6px;
+    bottom: auto;
+    border-top-color: transparent;
+    border-bottom-color: rgba(0, 0, 0, 0.9);
 }
 
 .file-card:hover .file-tooltip {
