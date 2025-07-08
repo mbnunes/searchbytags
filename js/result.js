@@ -92,7 +92,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 			// Renderiza apenas os arquivos da página atual
 			renderPage();
 
-
 			// Chama a função após criar todos os cards
 			setupTooltips();
 
