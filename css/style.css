@@ -337,11 +337,19 @@
 .file-tooltip::after {
     content: '';
     position: absolute;
-    top: 100%;
+    bottom: -6px;
     left: 50%;
     transform: translateX(-50%);
     border: 6px solid transparent;
     border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Quando o tooltip aparece ABAIXO do card, a seta aponta para CIMA */
+.file-tooltip.tooltip-below::after {
+    top: -6px;
+    bottom: auto;
+    border-top-color: transparent;
+    border-bottom-color: rgba(0, 0, 0, 0.9);
 }
 
 /* .file-card:hover .file-tooltip {
