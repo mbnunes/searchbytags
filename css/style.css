@@ -336,6 +336,7 @@
     max-width: 300px;
     width: max-content;
     margin-bottom: 8px;
+	z-index: 9999;
 }
 
 .file-tooltip::after {
