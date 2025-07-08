@@ -318,17 +318,17 @@
 }
 
 .file-tooltip {
-    position: fixed; /* Mudança principal */
+    position: fixed;
     background-color: rgba(0, 0, 0, 0.9);
     color: white;
     padding: 12px;
     border-radius: 6px;
     font-size: 13px;
     white-space: nowrap;
-    z-index: 99999; /* Valor muito alto */
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s;
+    z-index: 99999;
+    /* Remova opacity e visibility - vamos controlar via JavaScript */
+    display: none; /* Começa escondido */
+    transition: opacity 0.3s;
     pointer-events: none;
     max-width: 300px;
     width: max-content;
@@ -344,10 +344,10 @@
     border-top-color: rgba(0, 0, 0, 0.9);
 }
 
-.file-card:hover .file-tooltip {
+/* .file-card:hover .file-tooltip {
     opacity: 1;
     visibility: visible;
-}
+} */
 
 .tooltip-row {
     margin-bottom: 4px;

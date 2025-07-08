@@ -134,6 +134,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 			itemsPerPage = parseInt(e.target.value);
 			currentPage = 1;
 			renderPage();
+			setupTooltips();
 			updatePaginationButtons();
 		});
 
@@ -152,6 +153,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 			if (currentPage > 1) {
 				currentPage--;
 				renderPage();
+				setupTooltips();
 				updatePaginationButtons();
 			}
 		};
@@ -170,6 +172,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 			if (currentPage < totalPages) {
 				currentPage++;
 				renderPage();
+				setupTooltips();
 				updatePaginationButtons();
 			}
 		};
@@ -403,63 +406,72 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 	// Após o loop forEach que cria os cards, adicione:
 
-// Função para posicionar tooltips
 function setupTooltips() {
     const fileCards = document.querySelectorAll('.file-card');
     
     fileCards.forEach(card => {
         const tooltip = card.querySelector('.file-tooltip');
+        if (!tooltip) return; // Verifica se o tooltip existe
         
         card.addEventListener('mouseenter', function(e) {
             // Obtém as dimensões e posição do card
             const cardRect = this.getBoundingClientRect();
             
-            // Temporariamente torna visível para calcular dimensões
-            tooltip.style.visibility = 'hidden';
+            // Primeiro posiciona o tooltip invisível para calcular dimensões
+            tooltip.style.display = 'block';
             tooltip.style.opacity = '0';
-            tooltip.style.display = 'block';
             
-            // Obtém as dimensões do tooltip
-            const tooltipRect = tooltip.getBoundingClientRect();
-            
-            // Calcula a posição X (centralizada)
-            const left = cardRect.left + (cardRect.width / 2) - (tooltipRect.width / 2);
-            
-            // Calcula a posição Y (acima do card por padrão)
-            let top = cardRect.top - tooltipRect.height - 8;
-            
-            // Verifica se há espaço suficiente acima
-            if (top < 10) {
-                // Se não houver espaço acima, posiciona abaixo
-                top = cardRect.bottom + 8;
-                tooltip.classList.add('tooltip-below');
-            } else {
-                tooltip.classList.remove('tooltip-below');
-            }
-            
-            // Ajusta se sair da tela pela direita
-            let adjustedLeft = left;
-            if (left + tooltipRect.width > window.innerWidth - 10) {
-                adjustedLeft = window.innerWidth - tooltipRect.width - 10;
-            }
-            
-            // Ajusta se sair da tela pela esquerda
-            if (adjustedLeft < 10) {
-                adjustedLeft = 10;
-            }
-            
-            // Aplica as posições
-            tooltip.style.left = adjustedLeft + 'px';
-            tooltip.style.top = top + 'px';
-            tooltip.style.display = 'block';
+            // Aguarda o próximo frame para garantir que as dimensões sejam calculadas
+            requestAnimationFrame(() => {
+                const tooltipRect = tooltip.getBoundingClientRect();
+                
+                // Calcula a posição X (centralizada)
+                let left = cardRect.left + (cardRect.width / 2) - (tooltipRect.width / 2);
+                
+                // Calcula a posição Y (acima do card por padrão)
+                let top = cardRect.top - tooltipRect.height - 8;
+                
+                // Verifica se há espaço suficiente acima
+                if (top < 10) {
+                    // Se não houver espaço acima, posiciona abaixo
+                    top = cardRect.bottom + 8;
+                    tooltip.classList.add('tooltip-below');
+                } else {
+                    tooltip.classList.remove('tooltip-below');
+                }
+                
+                // Ajusta se sair da tela pela direita
+                if (left + tooltipRect.width > window.innerWidth - 10) {
+                    left = window.innerWidth - tooltipRect.width - 10;
+                }
+                
+                // Ajusta se sair da tela pela esquerda
+                if (left < 10) {
+                    left = 10;
+                }
+                
+                // Aplica as posições
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = top + 'px';
+                
+                // Mostra o tooltip com fade in
+                tooltip.style.opacity = '1';
+            });
         });
         
         card.addEventListener('mouseleave', function(e) {
             const tooltip = this.querySelector('.file-tooltip');
-            tooltip.style.display = 'none';
+            if (tooltip) {
+                tooltip.style.opacity = '0';
+                // Aguarda a transição terminar antes de esconder
+                setTimeout(() => {
+                    tooltip.style.display = 'none';
+                }, 300); // Mesmo tempo da transição no CSS
+            }
         });
     });
 }
+
 
 
 // Se você carregar mais cards dinamicamente (paginação), 
