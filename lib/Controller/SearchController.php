@@ -71,7 +71,7 @@ class SearchController extends Controller
     {
         $query = $this->request->getParam('query', '');
         $this->logger->info('Hybrid Search: Query: ' . $query);
-        
+
 
         if (empty($query)) {
             return new JSONResponse(['files' => []]);
@@ -211,9 +211,11 @@ class SearchController extends Controller
 
     private function parseSearchQuery(string $query): array
     {
+        // Verifica se há algum # na query
+        $hasHashTags = strpos($query, '#') !== false;
+
         // Separa por OR primeiro
         $orParts = preg_split('/\s+OR\s+/i', $query);
-        
 
         $parsedParts = [];
         foreach ($orParts as $orPart) {
@@ -233,8 +235,13 @@ class SearchController extends Controller
                         $andTags[] = $tagName;
                     }
                 } else {
-                    // Senão, é um nome de arquivo
-                    $andNames[] = $part;
+                    // Se não há # na query inteira, trata como tag (compatibilidade)
+                    if (!$hasHashTags) {
+                        $andTags[] = $part;
+                    } else {
+                        // Senão, é um nome de arquivo
+                        $andNames[] = $part;
+                    }
                 }
             }
 
@@ -261,39 +268,49 @@ class SearchController extends Controller
         foreach ($parsedQuery['groups'] as $group) {
             if ($group['type'] === 'AND') {
                 $groupFileIds = null;
+                $hasValidCriteria = false;
 
                 // Busca por tags
-                foreach ($group['tags'] as $tagName) {
-                    $tagName = strtolower(trim($tagName));
+                if (!empty($group['tags'])) {
+                    foreach ($group['tags'] as $tagName) {
+                        $tagName = strtolower(trim($tagName));
 
-                    if (!isset($tagNameToId[$tagName])) {
-                        $this->logger->info('Tag not found: ' . $tagName);
-                        $groupFileIds = [];
-                        break;
-                    }
+                        if (!isset($tagNameToId[$tagName])) {
+                            $this->logger->info('Tag not found: ' . $tagName);
+                            $groupFileIds = []; // Se uma tag não existe, grupo retorna vazio
+                            break;
+                        }
 
-                    $tagId = $tagNameToId[$tagName];
-                    $tagFileIds = $this->tagMapper->getObjectIdsForTags([$tagId], 'files');
+                        $tagId = $tagNameToId[$tagName];
+                        $tagFileIds = $this->tagMapper->getObjectIdsForTags([$tagId], 'files');
 
-                    if ($groupFileIds === null) {
-                        $groupFileIds = $tagFileIds;
-                    } else {
-                        $groupFileIds = array_intersect($groupFileIds, $tagFileIds);
+                        if ($groupFileIds === null) {
+                            $groupFileIds = $tagFileIds;
+                        } else {
+                            $groupFileIds = array_intersect($groupFileIds, $tagFileIds);
+                        }
+
+                        $hasValidCriteria = true;
                     }
                 }
 
                 // Busca por nomes de arquivos
-                foreach ($group['names'] as $fileName) {
-                    $nameFileIds = $this->searchByFileName($fileName);
+                if (!empty($group['names'])) {
+                    foreach ($group['names'] as $fileName) {
+                        $nameFileIds = $this->searchByFileName($fileName);
 
-                    if ($groupFileIds === null) {
-                        $groupFileIds = $nameFileIds;
-                    } else {
-                        $groupFileIds = array_intersect($groupFileIds, $nameFileIds);
+                        if ($groupFileIds === null) {
+                            $groupFileIds = $nameFileIds;
+                        } else {
+                            $groupFileIds = array_intersect($groupFileIds, $nameFileIds);
+                        }
+
+                        $hasValidCriteria = true;
                     }
                 }
 
-                if (!empty($groupFileIds)) {
+                // Se teve critérios válidos e encontrou arquivos
+                if ($hasValidCriteria && !empty($groupFileIds)) {
                     $allFileIds = array_merge($allFileIds, $groupFileIds);
                 }
             }
@@ -302,38 +319,50 @@ class SearchController extends Controller
         return array_unique($allFileIds);
     }
 
-    private function searchByFileName(string $fileName): array {
-    try {
-        $userFolder = $this->rootFolder->getUserFolder($this->userId);
-        $fileIds = [];
-        
-        // Busca arquivos que contenham o nome (case-insensitive)
-        $this->searchInFolder($userFolder, $fileName, $fileIds);
-        
-        return $fileIds;
-    } catch (\Exception $e) {
-        $this->logger->error('Error searching by filename: ' . $e->getMessage());
-        return [];
-    }
-}
+    private function searchByFileName(string $fileName): array
+    {
+        try {
+            $userFolder = $this->rootFolder->getUserFolder($this->userId);
+            $fileIds = [];
 
-private function searchInFolder($folder, string $fileName, array &$fileIds): void {
-    try {
-        $nodes = $folder->getDirectoryListing();
-        
-        foreach ($nodes as $node) {
-            if ($node->getType() === \OCP\Files\FileInfo::TYPE_FILE) {
-                // Busca case-insensitive
-                if (stripos($node->getName(), $fileName) !== false) {
-                    $fileIds[] = $node->getId();
+            // Usa a busca nativa do Nextcloud para ser mais eficiente
+            $searchResults = $userFolder->search($fileName);
+
+            foreach ($searchResults as $node) {
+                if ($node->getType() === \OCP\Files\FileInfo::TYPE_FILE) {
+                    // Verifica se o nome contém o termo buscado (case-insensitive)
+                    if (stripos($node->getName(), $fileName) !== false) {
+                        $fileIds[] = $node->getId();
+                    }
                 }
-            } elseif ($node->getType() === \OCP\Files\FileInfo::TYPE_FOLDER) {
-                // Recursivamente busca em subpastas
-                $this->searchInFolder($node, $fileName, $fileIds);
             }
+
+            $this->logger->info('Filename search for "' . $fileName . '" found ' . count($fileIds) . ' files');
+            return $fileIds;
+        } catch (\Exception $e) {
+            $this->logger->error('Error searching by filename: ' . $e->getMessage());
+            return [];
         }
-    } catch (\Exception $e) {
-        $this->logger->warning('Error searching in folder: ' . $e->getMessage());
     }
-}
+
+    private function searchInFolder($folder, string $fileName, array &$fileIds): void
+    {
+        try {
+            $nodes = $folder->getDirectoryListing();
+
+            foreach ($nodes as $node) {
+                if ($node->getType() === \OCP\Files\FileInfo::TYPE_FILE) {
+                    // Busca case-insensitive
+                    if (stripos($node->getName(), $fileName) !== false) {
+                        $fileIds[] = $node->getId();
+                    }
+                } elseif ($node->getType() === \OCP\Files\FileInfo::TYPE_FOLDER) {
+                    // Recursivamente busca em subpastas
+                    $this->searchInFolder($node, $fileName, $fileIds);
+                }
+            }
+        } catch (\Exception $e) {
+            $this->logger->warning('Error searching in folder: ' . $e->getMessage());
+        }
+    }
 }
