@@ -325,19 +325,12 @@ class SearchController extends Controller
             $userFolder = $this->rootFolder->getUserFolder($this->userId);
             $fileIds = [];
 
-            // Usa a busca nativa do Nextcloud para ser mais eficiente
-            $searchResults = $userFolder->search($fileName);
+            $this->logger->info('Searching for filename: "' . $fileName . '"');
 
-            foreach ($searchResults as $node) {
-                if ($node->getType() === \OCP\Files\FileInfo::TYPE_FILE) {
-                    // Verifica se o nome contém o termo buscado (case-insensitive)
-                    if (stripos($node->getName(), $fileName) !== false) {
-                        $fileIds[] = $node->getId();
-                    }
-                }
-            }
+            // Busca recursiva em todas as pastas
+            $this->searchInFolder($userFolder, $fileName, $fileIds);
 
-            $this->logger->info('Filename search for "' . $fileName . '" found ' . count($fileIds) . ' files');
+            $this->logger->info('Filename search for "' . $fileName . '" found ' . count($fileIds) . ' files: ' . json_encode($fileIds));
             return $fileIds;
         } catch (\Exception $e) {
             $this->logger->error('Error searching by filename: ' . $e->getMessage());
@@ -351,14 +344,20 @@ class SearchController extends Controller
             $nodes = $folder->getDirectoryListing();
 
             foreach ($nodes as $node) {
-                if ($node->getType() === \OCP\Files\FileInfo::TYPE_FILE) {
-                    // Busca case-insensitive
-                    if (stripos($node->getName(), $fileName) !== false) {
-                        $fileIds[] = $node->getId();
+                try {
+                    if ($node->getType() === \OCP\Files\FileInfo::TYPE_FILE) {
+                        // Busca case-insensitive
+                        if (stripos($node->getName(), $fileName) !== false) {
+                            $fileIds[] = $node->getId();
+                            $this->logger->info('Found file: ' . $node->getName() . ' (ID: ' . $node->getId() . ')');
+                        }
+                    } elseif ($node->getType() === \OCP\Files\FileInfo::TYPE_FOLDER) {
+                        // Recursivamente busca em subpastas
+                        $this->searchInFolder($node, $fileName, $fileIds);
                     }
-                } elseif ($node->getType() === \OCP\Files\FileInfo::TYPE_FOLDER) {
-                    // Recursivamente busca em subpastas
-                    $this->searchInFolder($node, $fileName, $fileIds);
+                } catch (\Exception $e) {
+                    $this->logger->warning('Error processing node: ' . $e->getMessage());
+                    continue;
                 }
             }
         } catch (\Exception $e) {
