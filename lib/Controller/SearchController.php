@@ -322,18 +322,53 @@ class SearchController extends Controller
     private function searchByFileName(string $fileName): array
     {
         try {
+            // Tenta usar o search provider do Nextcloud
+            $searchProviderManager = \OC::$server->get(\OCP\Search\ISearchProviderManager::class);
+            $searchProviders = $searchProviderManager->getProviders();
+
+            foreach ($searchProviders as $provider) {
+                if ($provider->getId() === 'files') {
+                    $searchResults = $provider->search($fileName, 50); // Limita a 50 resultados
+                    $fileIds = [];
+
+                    foreach ($searchResults as $result) {
+                        if (method_exists($result, 'getResourceUrl')) {
+                            $url = $result->getResourceUrl();
+                            // Extrai ID do arquivo da URL
+                            if (preg_match('/files\/(\d+)/', $url, $matches)) {
+                                $fileIds[] = (int)$matches[1];
+                            }
+                        }
+                    }
+
+                    $this->logger->info('Search provider found ' . count($fileIds) . ' files for: "' . $fileName . '"');
+                    return $fileIds;
+                }
+            }
+
+            // Fallback para busca manual
+            return $this->searchByFileNameManual($fileName);
+        } catch (\Exception $e) {
+            $this->logger->error('Error with search provider: ' . $e->getMessage());
+            return $this->searchByFileNameManual($fileName);
+        }
+    }
+
+    private function searchByFileNameManual(string $fileName): array
+    {
+        try {
             $userFolder = $this->rootFolder->getUserFolder($this->userId);
             $fileIds = [];
 
-            $this->logger->info('Searching for filename: "' . $fileName . '"');
+            $this->logger->info('Manual search for filename: "' . $fileName . '"');
 
             // Busca recursiva em todas as pastas
             $this->searchInFolder($userFolder, $fileName, $fileIds);
 
-            $this->logger->info('Filename search for "' . $fileName . '" found ' . count($fileIds) . ' files: ' . json_encode($fileIds));
+            $this->logger->info('Manual filename search for "' . $fileName . '" found ' . count($fileIds) . ' files');
             return $fileIds;
         } catch (\Exception $e) {
-            $this->logger->error('Error searching by filename: ' . $e->getMessage());
+            $this->logger->error('Error in manual filename search: ' . $e->getMessage());
             return [];
         }
     }
@@ -364,4 +399,29 @@ class SearchController extends Controller
             $this->logger->warning('Error searching in folder: ' . $e->getMessage());
         }
     }
+
+    /**
+ * @NoCSRFRequired
+ * @NoAdminRequired
+ */
+public function testFileSearch(): JSONResponse {
+    $query = $this->request->getParam('query', '');
+    
+    if (empty($query)) {
+        return new JSONResponse(['error' => 'No query provided']);
+    }
+    
+    try {
+        $fileIds = $this->searchByFileName($query);
+        
+        return new JSONResponse([
+            'query' => $query,
+            'found_files' => count($fileIds),
+            'file_ids' => $fileIds
+        ]);
+        
+    } catch (\Exception $e) {
+        return new JSONResponse(['error' => $e->getMessage()]);
+    }
+}
 }
